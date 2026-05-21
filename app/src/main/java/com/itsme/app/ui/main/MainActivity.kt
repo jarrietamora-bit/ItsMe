@@ -1,12 +1,16 @@
 package com.itsme.app.ui.main
+
 import android.content.Intent
 import android.os.Bundle
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.findNavController
-import androidx.navigation.ui.*
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.itsme.app.R
 import com.itsme.app.databinding.ActivityMainBinding
@@ -18,26 +22,34 @@ import com.itsme.app.viewmodel.LoginViewModel
 import com.itsme.app.viewmodel.TravelDateViewModel
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var b: ActivityMainBinding
-    private lateinit var tvmLogin: LoginViewModel
-    private lateinit var tvmTravel: TravelDateViewModel
+    private lateinit var loginVm: LoginViewModel
+    private lateinit var travelVm: TravelDateViewModel
 
-    override fun onCreate(s: Bundle?) {
-        super.onCreate(s)
-        b = ActivityMainBinding.inflate(layoutInflater); setContentView(b.root)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        b = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(b.root)
         setSupportActionBar(b.toolbar)
-        tvmLogin = ViewModelProvider(this)[LoginViewModel::class.java]
-        tvmTravel = ViewModelProvider(this)[TravelDateViewModel::class.java]
 
-        tvmTravel.active.observe(this) { td ->
+        loginVm = ViewModelProvider(this)[LoginViewModel::class.java]
+        travelVm = ViewModelProvider(this)[TravelDateViewModel::class.java]
+
+        travelVm.active.observe(this) { td ->
             supportActionBar?.subtitle = if (td != null) "Viaje: ${td.name}" else "Sin viaje activo"
             SessionManager.setTravelId(this, td?.id ?: 0)
         }
 
-        val nav = findNavController(R.id.nav_host_fragment)
-        val cfg = AppBarConfiguration(setOf(R.id.nav_clients, R.id.nav_articles, R.id.nav_wishlists, R.id.nav_travel_dates, R.id.nav_orders))
-        setupActionBarWithNavController(nav, cfg)
-        b.bottomNavigation.setupWithNavController(nav)
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        val appBarConfig = AppBarConfiguration(
+            setOf(R.id.nav_clients, R.id.nav_articles, R.id.nav_wishlists, R.id.nav_travel_dates, R.id.nav_orders)
+        )
+        setupActionBarWithNavController(navController, appBarConfig)
+        b.bottomNavigation.setupWithNavController(navController)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -46,34 +58,53 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_users -> { showUserMgmt(); true }
-        R.id.action_logout -> { SessionManager.logout(this); startActivity(Intent(this, LoginActivity::class.java)); finish(); true }
-        else -> super.onOptionsItemSelected(item)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_users -> { showUserManagement(); true }
+            R.id.action_logout -> {
+                SessionManager.logout(this)
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
-    private fun showUserMgmt() {
+    private fun showUserManagement() {
         val vb = DialogUserManagementBinding.inflate(layoutInflater)
         vb.rvUsers.layoutManager = LinearLayoutManager(this)
         val adapter = UserAdapter { user ->
-            AlertDialog.Builder(this).setTitle("Eliminar").setMessage("¿Eliminar ${user.username}?")
-                .setPositiveButton("Eliminar") { _, _ -> tvmLogin.deleteUser(user) }
-                .setNegativeButton("Cancelar", null).show()
+            AlertDialog.Builder(this)
+                .setTitle("Eliminar usuario")
+                .setMessage("Eliminar ${user.username}?")
+                .setPositiveButton("Eliminar") { _, _ -> loginVm.deleteUser(user) }
+                .setNegativeButton("Cancelar", null)
+                .show()
         }
         vb.rvUsers.adapter = adapter
-        tvmLogin.allUsers.observe(this) { adapter.submitList(it) }
-        AlertDialog.Builder(this).setTitle("Usuarios").setView(vb.root)
+        loginVm.allUsers.observe(this) { adapter.submitList(it) }
+        AlertDialog.Builder(this)
+            .setTitle("Usuarios")
+            .setView(vb.root)
             .setPositiveButton("Agregar") { _, _ -> showAddUser() }
-            .setNegativeButton("Cerrar", null).show()
+            .setNegativeButton("Cerrar", null)
+            .show()
     }
 
     private fun showAddUser() {
         val vb = DialogAddUserBinding.inflate(layoutInflater)
-        AlertDialog.Builder(this).setTitle("Nuevo Usuario").setView(vb.root)
+        AlertDialog.Builder(this)
+            .setTitle("Nuevo Usuario")
+            .setView(vb.root)
             .setPositiveButton("Guardar") { _, _ ->
-                val u = vb.etNewUsername.text.toString().trim()
-                val p = vb.etNewPassword.text.toString().trim()
-                if (u.isNotEmpty() && p.isNotEmpty()) tvmLogin.addUser(u, p, vb.switchAdmin.isChecked)
-            }.setNegativeButton("Cancelar", null).show()
+                val username = vb.etNewUsername.text.toString().trim()
+                val password = vb.etNewPassword.text.toString().trim()
+                if (username.isNotEmpty() && password.isNotEmpty()) {
+                    loginVm.addUser(username, password, vb.switchAdmin.isChecked)
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 }
