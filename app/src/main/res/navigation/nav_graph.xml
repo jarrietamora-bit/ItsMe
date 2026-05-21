@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_clients">
+    <fragment android:id="@+id/nav_clients"      android:name="com.itsme.app.ui.clients.ClientsFragment"       android:label="Clientes"/>
+    <fragment android:id="@+id/nav_articles"     android:name="com.itsme.app.ui.articles.ArticlesFragment"     android:label="Artículos"/>
+    <fragment android:id="@+id/nav_wishlists"    android:name="com.itsme.app.ui.wishlists.WishListsFragment"   android:label="Lista de Deseos"/>
+    <fragment android:id="@+id/nav_travel_dates" android:name="com.itsme.app.ui.traveldates.TravelDatesFragment" android:label="Fechas de Viaje"/>
+    <fragment android:id="@+id/nav_orders"       android:name="com.itsme.app.ui.orders.OrdersFragment"         android:label="Pedidos"/>
+</navigation>

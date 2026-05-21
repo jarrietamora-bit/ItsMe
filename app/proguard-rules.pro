@@ -1,0 +1,1 @@
+-keep class com.itsme.app.data.entities.** { *; }

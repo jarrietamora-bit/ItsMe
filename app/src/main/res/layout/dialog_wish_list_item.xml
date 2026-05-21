@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="16dp">
+  <ImageView android:id="@+id/ivItemPhoto"
+      android:layout_width="match_parent" android:layout_height="140dp"
+      android:scaleType="centerCrop" android:src="@drawable/ic_image"
+      android:background="#E0E0E0" android:layout_marginBottom="8dp"/>
+  <com.google.android.material.button.MaterialButton android:id="@+id/btnItemPhoto"
+      style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+      android:layout_width="match_parent" android:layout_height="wrap_content"
+      android:text="Seleccionar Foto" android:layout_marginBottom="12dp"/>
+  <com.google.android.material.textfield.TextInputLayout
+      style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+      android:layout_width="match_parent" android:layout_height="wrap_content"
+      android:hint="Nombre del Item">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etItemName"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  </com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>

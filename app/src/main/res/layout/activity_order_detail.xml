@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="@color/colorBackground">
+  <TextView android:id="@+id/tvOrderClient" android:layout_width="match_parent"
+      android:layout_height="wrap_content" android:text="Cliente: -"
+      android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="6dp"/>
+  <TextView android:id="@+id/tvOrderTotal" android:layout_width="match_parent"
+      android:layout_height="wrap_content" android:text="Total: $0.00"
+      android:textSize="20sp" android:textStyle="bold" android:textColor="@color/colorPrimary"
+      android:layout_marginBottom="12dp"/>
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+      android:orientation="horizontal" android:layout_marginBottom="12dp">
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnAddArticle"
+        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+        android:text="+ Artículo" android:layout_marginEnd="8dp"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnGeneratePdf"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+        android:text="Generar PDF"/>
+  </LinearLayout>
+  <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvOrderItems"
+      android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+</LinearLayout>
