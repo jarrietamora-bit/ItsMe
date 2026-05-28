@@ -3,7 +3,17 @@ require_once __DIR__ . '/../config/database.php';
 
 function auth_start(): void {
     if (session_status() === PHP_SESSION_NONE) {
-        session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
+        // Use app-local session storage to avoid cPanel /tmp permission issues
+        $sess_dir = __DIR__ . '/../storage/sessions';
+        if (!is_dir($sess_dir)) @mkdir($sess_dir, 0700, true);
+        if (is_writable($sess_dir)) session_save_path($sess_dir);
+
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => '/',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
         session_start();
     }
     // Check session timeout
