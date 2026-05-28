@@ -1,0 +1,154 @@
+/* BT-Support Global Styles */
+:root {
+  --brand-color: #0d6efd;
+  --sidebar-width: 240px;
+}
+
+/* Sidebar */
+#sidebar {
+  transition: transform 0.3s ease;
+}
+#sidebar .nav-link {
+  border-radius: 8px;
+  color: #495057;
+  font-size: 0.875rem;
+  padding: 0.45rem 0.75rem;
+}
+#sidebar .nav-link:hover {
+  background: #f0f4ff;
+  color: var(--brand-color);
+}
+#sidebar .nav-link.active {
+  background: var(--brand-color);
+  color: #fff !important;
+}
+#sidebar .nav-link.active i {
+  color: #fff !important;
+}
+
+/* Mobile sidebar */
+@media (max-width: 991px) {
+  #sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    height: calc(100vh - 56px);
+    z-index: 1000;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 20px rgba(0,0,0,.15);
+  }
+  #sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 999;
+  }
+  .sidebar-overlay.show {
+    display: block;
+  }
+}
+
+/* Cards */
+.card {
+  border-radius: 12px !important;
+}
+
+/* Tables */
+.table thead th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6c757d;
+  border-bottom-width: 1px;
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Topbar */
+.topbar .btn-link {
+  text-decoration: none;
+}
+
+/* Ticket conversation */
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.article-content pre {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.article-content code {
+  background: #f0f4ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--brand-color);
+}
+.article-content blockquote {
+  border-left: 4px solid #dee2e6;
+  padding-left: 16px;
+  color: #6c757d;
+  margin: 12px 0;
+}
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.article-content table td,
+.article-content table th {
+  border: 1px solid #dee2e6;
+  padding: 8px;
+}
+
+/* Reply box */
+.reply-box {
+  border-top: 3px solid var(--brand-color);
+}
+
+/* SLA warning row */
+tr.sla-warning td {
+  border-left: 3px solid #ffc107;
+}
+
+/* Hover highlight */
+.hover-bg-light:hover {
+  background: #f8f9fa;
+}
+
+/* Loading spinner */
+.spinner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Print */
+@media print {
+  #sidebar, .topbar, .btn, .card-footer { display: none !important; }
+  main { padding: 0 !important; }
+}
