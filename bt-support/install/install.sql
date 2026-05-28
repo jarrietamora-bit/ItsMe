@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS `departments` (
   `email` varchar(150) DEFAULT NULL,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_dept_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -73,7 +74,8 @@ CREATE TABLE IF NOT EXISTS `priorities` (
   `name_en` varchar(50) NOT NULL,
   `color` varchar(7) NOT NULL DEFAULT '#6c757d',
   `level` int NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_level` (`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -260,6 +262,7 @@ CREATE TABLE IF NOT EXISTS `kb_categories` (
   `sort_order` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `fk_kbc_parent` (`parent_id`),
+  UNIQUE KEY `uk_kbc_name_es` (`name_es`),
   CONSTRAINT `fk_kbc_parent` FOREIGN KEY (`parent_id`) REFERENCES `kb_categories` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -370,8 +373,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- Default Data
 -- --------------------------------------------------------
 
--- Default priorities
-INSERT INTO `priorities` (`name_es`, `name_en`, `color`, `level`) VALUES
+-- Default priorities (IGNORE prevents duplicates on re-run)
+INSERT IGNORE INTO `priorities` (`name_es`, `name_en`, `color`, `level`) VALUES
 ('Baja',    'Low',      '#6c757d', 1),
 ('Normal',  'Normal',   '#0d6efd', 2),
 ('Alta',    'High',     '#fd7e14', 3),
@@ -379,7 +382,7 @@ INSERT INTO `priorities` (`name_es`, `name_en`, `color`, `level`) VALUES
 ('Crítica', 'Critical', '#6f0000', 5);
 
 -- Default SLA policies
-INSERT INTO `sla_policies` (`name`, `priority_id`, `first_response_hours`, `resolution_hours`) VALUES
+INSERT IGNORE INTO `sla_policies` (`name`, `priority_id`, `first_response_hours`, `resolution_hours`) VALUES
 ('SLA Baja',    1, 48.0, 168.0),
 ('SLA Normal',  2, 24.0, 72.0),
 ('SLA Alta',    3, 8.0,  24.0),
@@ -387,7 +390,7 @@ INSERT INTO `sla_policies` (`name`, `priority_id`, `first_response_hours`, `reso
 ('SLA Crítica', 5, 0.5,  2.0);
 
 -- Default settings
-INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
+INSERT IGNORE INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('company_name',       'BT-Support'),
 ('company_slogan',     'Sistema de Soporte de Tickets'),
 ('company_color',      '#0d6efd'),
@@ -403,9 +406,9 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('tickets_per_page',   '25');
 
 -- Default department
-INSERT INTO `departments` (`name`, `description`, `color`) VALUES
+INSERT IGNORE INTO `departments` (`name`, `description`, `color`) VALUES
 ('Soporte General', 'Departamento de soporte general', '#0d6efd');
 
 -- Default KB category
-INSERT INTO `kb_categories` (`name_es`, `name_en`, `icon`) VALUES
+INSERT IGNORE INTO `kb_categories` (`name_es`, `name_en`, `icon`) VALUES
 ('General', 'General', 'bi-question-circle');
