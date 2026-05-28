@@ -12,6 +12,7 @@ $f_priority = $_GET['priority'] ?? '';
 $f_dept     = $_GET['dept']     ?? '';
 $f_search   = trim($_GET['q']   ?? '');
 $f_assigned = $_GET['assigned'] ?? '';
+$f_tag      = (int)($_GET['tag'] ?? 0);
 $page_num   = max(1,(int)($_GET['p'] ?? 1));
 $per_page   = (int)(setting('tickets_per_page') ?: 25);
 
@@ -42,6 +43,10 @@ if ($f_search)   {
     $where[] = '(t.ticket_number LIKE ? OR t.subject LIKE ? OR u.name LIKE ? OR u.email LIKE ?)';
     $like = '%' . $f_search . '%';
     array_push($params, $like, $like, $like, $like);
+}
+if ($f_tag) {
+    $where[] = 'EXISTS (SELECT 1 FROM ticket_tags tt WHERE tt.ticket_id=t.id AND tt.tag_id=?)';
+    $params[] = $f_tag;
 }
 
 $where_sql = implode(' AND ', $where);
@@ -90,8 +95,9 @@ $st->execute($p2);
 $tickets = $st->fetchAll();
 
 // Filter options
-$priorities = db()->query("SELECT * FROM priorities ORDER BY level")->fetchAll();
+$priorities  = db()->query("SELECT * FROM priorities ORDER BY level")->fetchAll();
 $departments = is_admin() ? db()->query("SELECT * FROM departments WHERE status='active' ORDER BY name")->fetchAll() : [];
+$all_tags    = db()->query("SELECT * FROM tags ORDER BY name")->fetchAll();
 
 $page_title = t('tickets');
 include ROOT . '/templates/header.php';
@@ -136,6 +142,16 @@ include ROOT . '/templates/header.php';
           <option value=""><?= t('all') ?> <?= t('departments') ?></option>
           <?php foreach ($departments as $d): ?>
             <option value="<?= $d['id'] ?>" <?= $f_dept==$d['id']?'selected':'' ?>><?= h($d['name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php endif; ?>
+      <?php if (!empty($all_tags)): ?>
+      <div class="col-md-2">
+        <select name="tag" class="form-select form-select-sm">
+          <option value="">Todas las etiquetas</option>
+          <?php foreach ($all_tags as $tg): ?>
+            <option value="<?= $tg['id'] ?>" <?= $f_tag==$tg['id']?'selected':'' ?>><?= h($tg['name']) ?></option>
           <?php endforeach; ?>
         </select>
       </div>

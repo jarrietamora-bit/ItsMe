@@ -144,6 +144,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         flash('success', t('ticket_updated'));
     }
 
+    // Add tag (agents only)
+    if ($action === 'add_tag' && is_agent()) {
+        $tag_name = trim($_POST['tag_name'] ?? '');
+        if ($tag_name !== '') {
+            db()->prepare("INSERT IGNORE INTO tags (name) VALUES (?)")->execute([$tag_name]);
+            $tag_id_row = db()->prepare("SELECT id FROM tags WHERE name=?");
+            $tag_id_row->execute([$tag_name]);
+            $tag_id = (int)$tag_id_row->fetchColumn();
+            if ($tag_id) {
+                db()->prepare("INSERT IGNORE INTO ticket_tags (ticket_id, tag_id) VALUES (?,?)")->execute([$t_id, $tag_id]);
+            }
+        }
+        flash('success', t('ticket_updated'));
+    }
+
+    // Remove tag (agents only)
+    if ($action === 'remove_tag' && is_agent()) {
+        $tag_id = (int)($_POST['tag_id'] ?? 0);
+        if ($tag_id) {
+            db()->prepare("DELETE FROM ticket_tags WHERE ticket_id=? AND tag_id=?")->execute([$t_id, $tag_id]);
+        }
+        flash('success', t('ticket_updated'));
+    }
+
+    // Add related ticket (agents only)
+    if ($action === 'add_related' && is_agent()) {
+        $rel_number = trim($_POST['related_number'] ?? '');
+        if ($rel_number !== '') {
+            $rel_st = db()->prepare("SELECT id FROM tickets WHERE ticket_number=?");
+            $rel_st->execute([$rel_number]);
+            $rel_ticket_id = (int)$rel_st->fetchColumn();
+            if ($rel_ticket_id && $rel_ticket_id !== $t_id) {
+                $id1 = min($t_id, $rel_ticket_id);
+                $id2 = max($t_id, $rel_ticket_id);
+                db()->prepare("INSERT IGNORE INTO related_tickets (ticket_id_1, ticket_id_2) VALUES (?,?)")->execute([$id1, $id2]);
+            }
+        }
+        flash('success', t('ticket_updated'));
+    }
+
+    // Remove related ticket (agents only)
+    if ($action === 'remove_related' && is_agent()) {
+        $rel_id = (int)($_POST['related_id'] ?? 0);
+        if ($rel_id) {
+            $id1 = min($t_id, $rel_id);
+            $id2 = max($t_id, $rel_id);
+            db()->prepare("DELETE FROM related_tickets WHERE ticket_id_1=? AND ticket_id_2=?")->execute([$id1, $id2]);
+        }
+        flash('success', t('ticket_updated'));
+    }
+
     redirect(base_url('tickets/view?id='.$t_id));
 }
 
@@ -183,6 +234,21 @@ if (is_supervisor()) {
 $departments_list = is_supervisor() ? db()->query("SELECT id,name FROM departments WHERE status='active' ORDER BY name")->fetchAll() : [];
 $priorities_list  = db()->query("SELECT * FROM priorities ORDER BY level")->fetchAll();
 $categories_list  = db()->query("SELECT * FROM categories WHERE status='active' ORDER BY name")->fetchAll();
+
+// Tags
+$tag_st = db()->prepare("SELECT t.id, t.name FROM tags t JOIN ticket_tags tt ON t.id=tt.tag_id WHERE tt.ticket_id=? ORDER BY t.name");
+$tag_st->execute([$t_id]);
+$ticket_tags = $tag_st->fetchAll();
+
+// Related tickets
+$related_st = db()->prepare(
+    "SELECT tk.id, tk.ticket_number, tk.subject, tk.status
+     FROM related_tickets rt
+     JOIN tickets tk ON (CASE WHEN rt.ticket_id_1=? THEN rt.ticket_id_2 ELSE rt.ticket_id_1 END)=tk.id
+     WHERE rt.ticket_id_1=? OR rt.ticket_id_2=?"
+);
+$related_st->execute([$t_id, $t_id, $t_id]);
+$related = $related_st->fetchAll();
 
 // Existing rating
 $rating_row = db()->prepare("SELECT * FROM ratings WHERE ticket_id=?")->execute([$t_id]) ? db()->query("SELECT * FROM ratings WHERE ticket_id={$t_id}")->fetch() : null;
@@ -427,6 +493,74 @@ include ROOT . '/templates/header.php';
       </div>
     </div>
     <?php endif; ?>
+
+    <!-- Tags -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white"><strong>Etiquetas</strong></div>
+      <div class="card-body">
+        <?php if (!empty($ticket_tags)): ?>
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          <?php foreach ($ticket_tags as $tag): ?>
+          <span class="badge bg-secondary d-inline-flex align-items-center gap-1">
+            <?= h($tag['name']) ?>
+            <?php if (is_agent()): ?>
+            <form method="post" class="d-inline m-0 p-0">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="remove_tag">
+              <input type="hidden" name="tag_id" value="<?= (int)$tag['id'] ?>">
+              <button type="submit" class="btn-close btn-close-white p-0" style="font-size:0.55rem" aria-label="Remove"></button>
+            </form>
+            <?php endif; ?>
+          </span>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <?php if (is_agent()): ?>
+        <form method="post" class="d-flex gap-2 mt-1">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="add_tag">
+          <input type="text" name="tag_name" class="form-control form-control-sm" placeholder="Nueva etiqueta..." autocomplete="off" id="tagInput">
+          <button type="submit" class="btn btn-sm btn-outline-secondary flex-shrink-0">+</button>
+        </form>
+        <?php endif; ?>
+      </div>
+    </div>
+
+    <!-- Related tickets -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white"><strong>Tickets relacionados</strong></div>
+      <div class="card-body">
+        <?php if (!empty($related)): ?>
+        <ul class="list-unstyled mb-2">
+          <?php foreach ($related as $rel): ?>
+          <li class="d-flex align-items-center justify-content-between gap-1 mb-1">
+            <a href="<?= base_url('tickets/view?id='.$rel['id']) ?>" class="text-decoration-none small fw-semibold">
+              <?= h($rel['ticket_number']) ?>
+            </a>
+            <span class="text-truncate small text-muted flex-grow-1 mx-1" style="max-width:100px" title="<?= h($rel['subject']) ?>"><?= h($rel['subject']) ?></span>
+            <?= status_badge($rel['status']) ?>
+            <?php if (is_agent()): ?>
+            <form method="post" class="d-inline m-0 p-0">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="remove_related">
+              <input type="hidden" name="related_id" value="<?= (int)$rel['id'] ?>">
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="line-height:1.2" title="Quitar"><i class="bi bi-x"></i></button>
+            </form>
+            <?php endif; ?>
+          </li>
+          <?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
+        <?php if (is_agent()): ?>
+        <form method="post" class="d-flex gap-2 mt-1">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="add_related">
+          <input type="text" name="related_number" class="form-control form-control-sm" placeholder="Número de ticket...">
+          <button type="submit" class="btn btn-sm btn-outline-secondary flex-shrink-0">+</button>
+        </form>
+        <?php endif; ?>
+      </div>
+    </div>
   </div>
 </div>
 
