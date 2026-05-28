@@ -63,14 +63,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
             if (!$internal) {
                 if (is_agent() && $ticket['created_by'] != $uid) {
                     // Agent replied → notify client
-                    $client = db()->query("SELECT * FROM users WHERE id={$ticket['created_by']}")->fetch();
+                    $st_client = db()->prepare("SELECT * FROM users WHERE id=?");
+                    $st_client->execute([$ticket['created_by']]);
+                    $client = $st_client->fetch();
                     if ($client) {
                         send_notification($client['id'],'ticket_reply',"Nueva respuesta en #{$ticket['ticket_number']}",$message,base_url('tickets/view?id='.$t_id));
                         try { mailer()->sendTicketReply($ticket, $client, ['message'=>$message]); } catch(\Throwable $e){}
                     }
                 } elseif ($role === 'client' && $ticket['assigned_to']) {
                     // Client replied → notify agent
-                    $agent = db()->query("SELECT * FROM users WHERE id={$ticket['assigned_to']}")->fetch();
+                    $st_agent = db()->prepare("SELECT * FROM users WHERE id=?");
+                    $st_agent->execute([$ticket['assigned_to']]);
+                    $agent = $st_agent->fetch();
                     if ($agent) {
                         send_notification($agent['id'],'ticket_reply',"Cliente respondió #{$ticket['ticket_number']}",$message,base_url('tickets/view?id='.$t_id));
                         try { mailer()->send($agent['email'],"Cliente respondió: #{$ticket['ticket_number']}","<p>{$message}</p>",$agent['name']); } catch(\Throwable $e){}
@@ -104,7 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     // Status changes
     if ($action === 'resolve' && is_agent()) {
         db()->prepare("UPDATE tickets SET status='resolved', resolved_at=NOW(), updated_at=NOW() WHERE id=?")->execute([$t_id]);
-        $client = db()->query("SELECT * FROM users WHERE id={$ticket['created_by']}")->fetch();
+        $st_rclient = db()->prepare("SELECT * FROM users WHERE id=?");
+        $st_rclient->execute([$ticket['created_by']]);
+        $client = $st_rclient->fetch();
         if ($client) {
             send_notification($client['id'],'resolved',"Ticket #{$ticket['ticket_number']} resuelto",'',base_url('tickets/view?id='.$t_id));
             try { mailer()->sendTicketResolved($ticket, $client); } catch(\Throwable $e){}
