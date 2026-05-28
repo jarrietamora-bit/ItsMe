@@ -132,7 +132,7 @@ include ROOT . '/templates/header.php';
   <div class="col-lg-8">
     <div class="card border-0 shadow-sm">
       <div class="card-body p-4">
-        <form method="post" enctype="multipart/form-data" novalidate>
+        <form method="post" enctype="multipart/form-data" novalidate id="ticketForm">
           <?= csrf_field() ?>
           <div class="mb-3">
             <label class="form-label fw-semibold"><?= t('subject') ?> <span class="text-danger">*</span></label>
@@ -160,10 +160,9 @@ include ROOT . '/templates/header.php';
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white"><strong><?= t('ticket_details') ?></strong></div>
       <div class="card-body">
-        <form id="detailsForm">
           <div class="mb-3">
             <label class="form-label small fw-semibold"><?= t('department') ?></label>
-            <select name="department_id" form="detailsForm" class="form-select form-select-sm" id="deptSelect"
+            <select name="department_id" form="ticketForm" class="form-select form-select-sm" id="deptSelect"
                     onchange="loadCategories(this.value)">
               <option value=""><?= t('select') ?>...</option>
               <?php foreach ($departments as $d): ?>
@@ -173,7 +172,7 @@ include ROOT . '/templates/header.php';
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold"><?= t('category') ?></label>
-            <select name="category_id" class="form-select form-select-sm" id="catSelect">
+            <select name="category_id" form="ticketForm" class="form-select form-select-sm" id="catSelect">
               <option value=""><?= t('select') ?>...</option>
               <?php foreach ($categories as $c): ?>
                 <option value="<?= $c['id'] ?>" data-dept="<?= $c['department_id'] ?>" <?= ($_POST['category_id']??'')==$c['id']?'selected':'' ?>><?= h($c['name']) ?></option>
@@ -182,7 +181,7 @@ include ROOT . '/templates/header.php';
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold"><?= t('priority') ?></label>
-            <select name="priority_id" class="form-select form-select-sm">
+            <select name="priority_id" form="ticketForm" class="form-select form-select-sm">
               <option value=""><?= t('select') ?>...</option>
               <?php foreach ($priorities as $pr): ?>
                 <option value="<?= $pr['id'] ?>" style="color:<?= h($pr['color']) ?>" <?= ($_POST['priority_id']??'')==$pr['id']?'selected':'' ?>>
@@ -194,7 +193,7 @@ include ROOT . '/templates/header.php';
           <?php if (is_agent() && $agents): ?>
           <div class="mb-3">
             <label class="form-label small fw-semibold"><?= t('assign_agent') ?></label>
-            <select name="assigned_to" class="form-select form-select-sm">
+            <select name="assigned_to" form="ticketForm" class="form-select form-select-sm">
               <option value=""><?= t('none') ?> (auto)</option>
               <?php foreach ($agents as $a): ?>
                 <option value="<?= $a['id'] ?>" <?= ($_POST['assigned_to']??'')==$a['id']?'selected':'' ?>><?= h($a['name']) ?></option>
@@ -202,18 +201,6 @@ include ROOT . '/templates/header.php';
             </select>
           </div>
           <?php endif; ?>
-        </form>
-        <!-- The actual fields need to be in the main form -->
-        <script>
-        // Move select fields into main form
-        document.addEventListener('DOMContentLoaded', () => {
-          const mainForm = document.querySelector('form[method="post"]');
-          document.querySelectorAll('#detailsForm select').forEach(sel => {
-            sel.form && (sel.removeAttribute('form'));
-            mainForm.appendChild(sel);
-          });
-        });
-        </script>
       </div>
     </div>
 
