@@ -10,11 +10,9 @@ $t_id   = (int)($_GET['id'] ?? 0);
 $st = db()->prepare("SELECT t.*, u.name as client_name, u.email as client_email, u.phone as client_phone,
        p.name_es as priority_name, p.name_en as priority_name_en, p.color as priority_color,
        d.name as dept_name, d.color as dept_color,
-       cat.name as cat_name, a.name as agent_name,
-       creator.name as creator_name
+       cat.name as cat_name, a.name as agent_name
 FROM tickets t
 JOIN users u ON t.created_by=u.id
-JOIN users creator ON t.created_by=creator.id
 LEFT JOIN priorities p ON t.priority_id=p.id
 LEFT JOIN departments d ON t.department_id=d.id
 LEFT JOIN categories cat ON t.category_id=cat.id
@@ -89,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $new_agent = (int)($_POST['assign_to'] ?? 0) ?: null;
         db()->prepare("UPDATE tickets SET assigned_to=?, updated_at=NOW() WHERE id=?")->execute([$new_agent, $t_id]);
         if ($new_agent) {
-            send_notification($new_agent,'assigned',"Ticket asignado: #{$ticket['ticket_number']}",'',$base_url='');
+            send_notification($new_agent,'assigned',"Ticket asignado: #{$ticket['ticket_number']}","",base_url('tickets/view?id='.$t_id));
         }
         flash('success', t('ticket_updated'));
         log_activity('assign_ticket','ticket',$t_id);
@@ -178,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
             if ($rel_ticket_id && $rel_ticket_id !== $t_id) {
                 $id1 = min($t_id, $rel_ticket_id);
                 $id2 = max($t_id, $rel_ticket_id);
-                db()->prepare("INSERT IGNORE INTO related_tickets (ticket_id, related_id) VALUES (?,?)")->execute([$t_id, $rel_id]);
+                db()->prepare("INSERT IGNORE INTO related_tickets (ticket_id, related_id) VALUES (?,?)")->execute([$t_id, $rel_ticket_id]);
             }
         }
         flash('success', t('ticket_updated'));
@@ -355,6 +353,7 @@ include ROOT . '/templates/header.php';
         <form method="post" enctype="multipart/form-data">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="reply">
+          <input type="hidden" name="is_internal" id="isInternalField" value="0">
           <div class="tab-content">
             <div class="tab-pane fade show active" id="publicTab">
               <?php if (!empty($canned)): ?>
@@ -375,7 +374,6 @@ include ROOT . '/templates/header.php';
             <?php if (is_agent()): ?>
             <div class="tab-pane fade" id="noteTab">
               <textarea name="message" class="form-control" rows="5" placeholder="Nota interna (solo visible para agentes)..." id="noteMsg"></textarea>
-              <input type="hidden" name="is_internal" value="1">
             </div>
             <?php endif; ?>
           </div>
@@ -657,12 +655,14 @@ document.querySelectorAll('.star-btn').forEach(star => {
   });
 });
 
-// Active tab switches textarea name
+// Active tab switches textarea name and is_internal flag
 document.querySelectorAll('#replyTabs a').forEach(tab => {
   tab.addEventListener('shown.bs.tab', e => {
     const isNote = e.target.getAttribute('href') === '#noteTab';
     document.getElementById('replyMsg')?.setAttribute('name', isNote ? '' : 'message');
     document.getElementById('noteMsg')?.setAttribute('name', isNote ? 'message' : '');
+    const field = document.getElementById('isInternalField');
+    if (field) field.value = isNote ? '1' : '0';
   });
 });
 
