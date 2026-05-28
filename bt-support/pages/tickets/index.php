@@ -58,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify() && is_agent()) {
     if ($ids && in_array($bulk, ['close','resolve','open','in_progress','waiting'], true)) {
         $new_status = $bulk === 'close' ? 'closed' : ($bulk === 'resolve' ? 'resolved' : $bulk);
         $in = implode(',', $ids);
-        $resolved_at = in_array($new_status,['resolved','closed']) ? ", resolved_at = NOW()" : '';
-        db()->exec("UPDATE tickets SET status = '{$new_status}'{$resolved_at} WHERE id IN({$in})");
+        $resolved_sql = in_array($new_status,['resolved','closed']) ? ", resolved_at = NOW()" : '';
+        db()->prepare("UPDATE tickets SET status = ?{$resolved_sql} WHERE id IN({$in})")->execute([$new_status]);
         flash('success', t('ticket_updated'));
     }
     if ($ids && $bulk === 'assign_me' && is_agent()) {

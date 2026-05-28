@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
             if ($rel_ticket_id && $rel_ticket_id !== $t_id) {
                 $id1 = min($t_id, $rel_ticket_id);
                 $id2 = max($t_id, $rel_ticket_id);
-                db()->prepare("INSERT IGNORE INTO related_tickets (ticket_id_1, ticket_id_2) VALUES (?,?)")->execute([$id1, $id2]);
+                db()->prepare("INSERT IGNORE INTO related_tickets (ticket_id, related_id) VALUES (?,?)")->execute([$t_id, $rel_id]);
             }
         }
         flash('success', t('ticket_updated'));
@@ -188,9 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     if ($action === 'remove_related' && is_agent()) {
         $rel_id = (int)($_POST['related_id'] ?? 0);
         if ($rel_id) {
-            $id1 = min($t_id, $rel_id);
-            $id2 = max($t_id, $rel_id);
-            db()->prepare("DELETE FROM related_tickets WHERE ticket_id_1=? AND ticket_id_2=?")->execute([$id1, $id2]);
+            db()->prepare("DELETE FROM related_tickets WHERE (ticket_id=? AND related_id=?) OR (ticket_id=? AND related_id=?)")->execute([$t_id,$rel_id,$rel_id,$t_id]);
         }
         flash('success', t('ticket_updated'));
     }
@@ -244,14 +242,16 @@ $ticket_tags = $tag_st->fetchAll();
 $related_st = db()->prepare(
     "SELECT tk.id, tk.ticket_number, tk.subject, tk.status
      FROM related_tickets rt
-     JOIN tickets tk ON (CASE WHEN rt.ticket_id_1=? THEN rt.ticket_id_2 ELSE rt.ticket_id_1 END)=tk.id
-     WHERE rt.ticket_id_1=? OR rt.ticket_id_2=?"
+     JOIN tickets tk ON CASE WHEN rt.ticket_id=? THEN rt.related_id ELSE rt.ticket_id END = tk.id
+     WHERE rt.ticket_id=? OR rt.related_id=?"
 );
 $related_st->execute([$t_id, $t_id, $t_id]);
 $related = $related_st->fetchAll();
 
 // Existing rating
-$rating_row = db()->prepare("SELECT * FROM ratings WHERE ticket_id=?")->execute([$t_id]) ? db()->query("SELECT * FROM ratings WHERE ticket_id={$t_id}")->fetch() : null;
+$rating_st = db()->prepare("SELECT * FROM ratings WHERE ticket_id=?");
+$rating_st->execute([$t_id]);
+$rating_row = $rating_st->fetch() ?: null;
 
 $page_title = 'Ticket #' . $ticket['ticket_number'];
 include ROOT . '/templates/header.php';
