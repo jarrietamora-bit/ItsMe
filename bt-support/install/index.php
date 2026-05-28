@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($step === 3) {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) session_start();
         $name  = trim($_POST['admin_name']  ?? '');
         $email = trim($_POST['admin_email'] ?? '');
         $pass  = $_POST['admin_pass']  ?? '';
@@ -72,24 +72,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (strlen($pass) < 8) $errors[] = 'La contraseña debe tener al menos 8 caracteres.';
         if ($pass !== $pass2) $errors[] = 'Las contraseñas no coinciden.';
 
+        // If session lost, try to read from hidden POST fields
+        if (empty($_SESSION['install'])) {
+            $db_host = trim($_POST['db_host_s'] ?? 'localhost');
+            $db_name = trim($_POST['db_name_s'] ?? '');
+            $db_user = trim($_POST['db_user_s'] ?? '');
+            $db_pass = $_POST['db_pass_s'] ?? '';
+            $db_port = trim($_POST['db_port_s'] ?? '3306');
+            if ($db_name && $db_user) {
+                $_SESSION['install'] = compact('db_host','db_name','db_user','db_pass','db_port');
+            } else {
+                $errors[] = 'Sesión expirada. <a href="?step=2">Vuelva al Paso 2</a> e intente de nuevo.';
+            }
+        }
+
         if (empty($errors)) {
-            $db = $_SESSION['install'];
-            $pdo = new PDO("mysql:host={$db['db_host']};port={$db['db_port']};dbname={$db['db_name']};charset=utf8mb4",
-                           $db['db_user'], $db['db_pass'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            $hash = password_hash($pass, PASSWORD_BCRYPT);
-            $st = $pdo->prepare("INSERT INTO users (name, email, password, role, status) VALUES (?,?,?,'super_admin','active')");
-            $st->execute([$name, $email, $hash]);
-            // Assign to default department
-            $uid = $pdo->lastInsertId();
-            $pdo->prepare("INSERT INTO department_users (department_id, user_id, is_supervisor) VALUES (1,?,1)")->execute([$uid]);
-            $_SESSION['install']['admin'] = compact('name','email');
-            header('Location: ?step=4');
-            exit;
+            try {
+                $db = $_SESSION['install'];
+                $pdo = new PDO("mysql:host={$db['db_host']};port={$db['db_port']};dbname={$db['db_name']};charset=utf8mb4",
+                               $db['db_user'], $db['db_pass'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+                $hash = password_hash($pass, PASSWORD_BCRYPT);
+                $st = $pdo->prepare("INSERT INTO users (name, email, password, role, status) VALUES (?,?,?,'super_admin','active')");
+                $st->execute([$name, $email, $hash]);
+                $uid = $pdo->lastInsertId();
+                // Assign to default department only if it exists
+                $dep = $pdo->query("SELECT id FROM departments LIMIT 1")->fetch();
+                if ($dep) {
+                    $pdo->prepare("INSERT IGNORE INTO department_users (department_id, user_id, is_supervisor) VALUES (?,?,1)")->execute([$dep['id'], $uid]);
+                }
+                $_SESSION['install']['admin'] = compact('name','email');
+                header('Location: ?step=4');
+                exit;
+            } catch (\Throwable $e) {
+                $errors[] = 'Error al crear el administrador: ' . $e->getMessage();
+            }
         }
     }
 
     if ($step === 4) {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['install'])) {
+            $db_host = trim($_POST['db_host_s'] ?? 'localhost');
+            $db_name = trim($_POST['db_name_s'] ?? '');
+            $db_user = trim($_POST['db_user_s'] ?? '');
+            $db_pass = $_POST['db_pass_s'] ?? '';
+            $db_port = trim($_POST['db_port_s'] ?? '3306');
+            if ($db_name && $db_user) {
+                $_SESSION['install'] = compact('db_host','db_name','db_user','db_pass','db_port');
+            } else {
+                die('<div style="font-family:sans-serif;text-align:center;margin-top:60px"><h3>Sesión expirada</h3><p><a href="?step=2">Volver al Paso 2</a></p></div>');
+            }
+        }
         $db = $_SESSION['install'];
         $pdo = new PDO("mysql:host={$db['db_host']};port={$db['db_port']};dbname={$db['db_name']};charset=utf8mb4",
                        $db['db_user'], $db['db_pass'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
@@ -254,6 +287,13 @@ $all_ok = !in_array(false, $req, true);
     <?php elseif ($step === 3): ?>
     <h4 class="mb-4">Cuenta de administrador</h4>
     <form method="post">
+      <?php if (!empty($_SESSION['install'])): $db = $_SESSION['install']; ?>
+      <input type="hidden" name="db_host_s" value="<?= htmlspecialchars($db['db_host']) ?>">
+      <input type="hidden" name="db_name_s" value="<?= htmlspecialchars($db['db_name']) ?>">
+      <input type="hidden" name="db_user_s" value="<?= htmlspecialchars($db['db_user']) ?>">
+      <input type="hidden" name="db_pass_s" value="<?= htmlspecialchars($db['db_pass']) ?>">
+      <input type="hidden" name="db_port_s" value="<?= htmlspecialchars($db['db_port']) ?>">
+      <?php endif; ?>
       <div class="mb-3">
         <label class="form-label">Nombre completo</label>
         <input type="text" name="admin_name" class="form-control" required>
@@ -277,6 +317,13 @@ $all_ok = !in_array(false, $req, true);
     <?php elseif ($step === 4): ?>
     <h4 class="mb-4">Información de la empresa</h4>
     <form method="post">
+      <?php if (!empty($_SESSION['install'])): $db = $_SESSION['install']; ?>
+      <input type="hidden" name="db_host_s" value="<?= htmlspecialchars($db['db_host']) ?>">
+      <input type="hidden" name="db_name_s" value="<?= htmlspecialchars($db['db_name']) ?>">
+      <input type="hidden" name="db_user_s" value="<?= htmlspecialchars($db['db_user']) ?>">
+      <input type="hidden" name="db_pass_s" value="<?= htmlspecialchars($db['db_pass']) ?>">
+      <input type="hidden" name="db_port_s" value="<?= htmlspecialchars($db['db_port']) ?>">
+      <?php endif; ?>
       <div class="mb-3">
         <label class="form-label">Nombre de la empresa</label>
         <input type="text" name="company_name" class="form-control" value="BT-Support" required>
