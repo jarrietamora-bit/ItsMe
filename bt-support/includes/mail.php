@@ -35,13 +35,24 @@ class Mailer {
         $secure   = $this->cfg['smtp_secure'] ?? 'tls';
 
         try {
-            $context = stream_context_create();
+            $context = stream_context_create([
+                'ssl' => [
+                    'verify_peer'       => false,
+                    'verify_peer_name'  => false,
+                    'allow_self_signed' => true,
+                ],
+            ]);
             if ($secure === 'ssl') {
-                $socket = @stream_socket_client("ssl://{$host}:{$port}", $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
+                $socket = @stream_socket_client("ssl://{$host}:{$port}", $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $context);
             } else {
-                $socket = @stream_socket_client("tcp://{$host}:{$port}", $errno, $errstr, 15);
+                $socket = @stream_socket_client("tcp://{$host}:{$port}", $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $context);
             }
-            if (!$socket) return false;
+            if (!$socket) {
+                throw new \RuntimeException("No se pudo conectar a {$host}:{$port} — {$errstr} ({$errno})");
+            }
+
+            // 10 s read timeout so fgets() never blocks forever
+            stream_set_timeout($socket, 10);
 
             $this->smtpRead($socket);
             $this->smtpWrite($socket, "EHLO " . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
@@ -97,6 +108,10 @@ class Mailer {
         while ($line = fgets($socket, 512)) {
             $response .= $line;
             if (substr($line, 3, 1) === ' ') break;
+            $meta = stream_get_meta_data($socket);
+            if ($meta['timed_out']) {
+                throw new \RuntimeException('Timeout esperando respuesta del servidor SMTP');
+            }
         }
         return $response;
     }

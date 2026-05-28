@@ -7,13 +7,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     $action = $_POST['action'] ?? 'save';
 
     if ($action === 'test') {
-        // Send test email
         $to = trim($_POST['test_email_to'] ?? current_user()['email']);
+        $ajax = !empty($_POST['ajax']);
         try {
             $m = mailer();
             $ok = $m->send($to, 'Test BT-Support', '<h2>✓ Correo de prueba</h2><p>La configuración SMTP funciona correctamente.</p>', '');
+            if ($ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => $ok, 'msg' => $ok ? t('test_email_sent') : t('test_email_failed')]);
+                exit;
+            }
             flash($ok ? 'success' : 'danger', $ok ? t('test_email_sent') : t('test_email_failed'));
         } catch(\Throwable $e) {
+            if ($ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'msg' => t('test_email_failed') . ': ' . $e->getMessage()]);
+                exit;
+            }
             flash('danger', t('test_email_failed') . ': ' . $e->getMessage());
         }
         redirect(base_url('settings/email'));
@@ -109,15 +119,14 @@ include ROOT . '/templates/header.php';
     <div class="card border-0 shadow-sm mb-3">
       <div class="card-header bg-white"><strong><i class="bi bi-send me-2"></i><?= t('test_email') ?></strong></div>
       <div class="card-body">
-        <form method="post">
-          <?= csrf_field() ?>
-          <input type="hidden" name="action" value="test">
-          <div class="mb-3">
-            <label class="form-label">Enviar a</label>
-            <input type="email" name="test_email_to" class="form-control" value="<?= h(current_user()['email']) ?>">
-          </div>
-          <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-send me-1"></i><?= t('test_email') ?></button>
-        </form>
+        <div class="mb-3">
+          <label class="form-label">Enviar a</label>
+          <input type="email" id="testEmailTo" class="form-control" value="<?= h(current_user()['email']) ?>">
+        </div>
+        <button id="btnTestEmail" class="btn btn-outline-primary btn-sm" onclick="sendTestEmail()">
+          <i class="bi bi-send me-1"></i><?= t('test_email') ?>
+        </button>
+        <div id="testEmailResult" class="mt-3" style="display:none"></div>
       </div>
     </div>
 
@@ -145,5 +154,38 @@ function toggleSmtp() {
   document.getElementById('smtpFields').style.display = v === 'smtp' ? 'block' : 'none';
 }
 toggleSmtp();
+
+function sendTestEmail() {
+  const btn = document.getElementById('btnTestEmail');
+  const result = document.getElementById('testEmailResult');
+  const to = document.getElementById('testEmailTo').value.trim();
+  if (!to) { alert('Ingrese un correo destino'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+  result.style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('action', 'test');
+  fd.append('ajax', '1');
+  fd.append('test_email_to', to);
+  fd.append('_csrf', document.querySelector('input[name="_csrf"]')?.value || '');
+
+  fetch(window.location.href, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      result.style.display = 'block';
+      result.innerHTML = `<div class="alert alert-${data.ok ? 'success' : 'danger'} py-2 mb-0 small">
+        <i class="bi bi-${data.ok ? 'check-circle' : 'x-circle'} me-1"></i>${data.msg}</div>`;
+    })
+    .catch(() => {
+      result.style.display = 'block';
+      result.innerHTML = '<div class="alert alert-danger py-2 mb-0 small"><i class="bi bi-x-circle me-1"></i>Error de conexión al procesar la solicitud.</div>';
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send me-1"></i><?= t('test_email') ?>';
+    });
+}
 </script>
 <?php include ROOT . '/templates/footer.php'; ?>
