@@ -46,70 +46,110 @@ if (in_array($role, ['super_admin','admin'])) {
     $dept_ids = array_column(get_user_departments($uid), 'id');
     $dids_str = $dept_ids ? implode(',', array_map('intval', $dept_ids)) : '0';
 
+    $in_placeholders = implode(',', array_fill(0, count($dept_ids), '?'));
+    $dids_params = $dept_ids ?: [0];
+    $in_placeholders = implode(',', array_fill(0, count($dids_params), '?'));
+
+    $st_so = db()->prepare("SELECT COUNT(*) FROM tickets WHERE status='open' AND department_id IN({$in_placeholders})");
+    $st_so->execute($dids_params);
+    $st_si = db()->prepare("SELECT COUNT(*) FROM tickets WHERE status='in_progress' AND department_id IN({$in_placeholders})");
+    $st_si->execute($dids_params);
+    $st_sr = db()->prepare("SELECT COUNT(*) FROM tickets WHERE status='resolved' AND DATE(resolved_at)=CURDATE() AND department_id IN({$in_placeholders})");
+    $st_sr->execute($dids_params);
+    $st_sov = db()->prepare("SELECT COUNT(*) FROM tickets WHERE sla_breached=1 AND status NOT IN('resolved','closed') AND department_id IN({$in_placeholders})");
+    $st_sov->execute($dids_params);
+    $st_sun = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to IS NULL AND status NOT IN('resolved','closed') AND department_id IN({$in_placeholders})");
+    $st_sun->execute($dids_params);
+    $st_st = db()->prepare("SELECT COUNT(*) FROM tickets WHERE department_id IN({$in_placeholders})");
+    $st_st->execute($dids_params);
     $stats = [
-        'open'        => db()->query("SELECT COUNT(*) FROM tickets WHERE status='open' AND department_id IN({$dids_str})")->fetchColumn(),
-        'in_progress' => db()->query("SELECT COUNT(*) FROM tickets WHERE status='in_progress' AND department_id IN({$dids_str})")->fetchColumn(),
-        'resolved'    => db()->query("SELECT COUNT(*) FROM tickets WHERE status='resolved' AND DATE(resolved_at)=CURDATE() AND department_id IN({$dids_str})")->fetchColumn(),
-        'overdue'     => db()->query("SELECT COUNT(*) FROM tickets WHERE sla_breached=1 AND status NOT IN('resolved','closed') AND department_id IN({$dids_str})")->fetchColumn(),
-        'unassigned'  => db()->query("SELECT COUNT(*) FROM tickets WHERE assigned_to IS NULL AND status NOT IN('resolved','closed') AND department_id IN({$dids_str})")->fetchColumn(),
-        'total'       => db()->query("SELECT COUNT(*) FROM tickets WHERE department_id IN({$dids_str})")->fetchColumn(),
+        'open'        => (int)$st_so->fetchColumn(),
+        'in_progress' => (int)$st_si->fetchColumn(),
+        'resolved'    => (int)$st_sr->fetchColumn(),
+        'overdue'     => (int)$st_sov->fetchColumn(),
+        'unassigned'  => (int)$st_sun->fetchColumn(),
+        'total'       => (int)$st_st->fetchColumn(),
     ];
 
-    $recent = db()->query("
+    $st_recent = db()->prepare("
         SELECT t.*, u.name as client_name, p.name_es as priority_name, p.color as priority_color,
                d.name as dept_name, a.name as agent_name
         FROM tickets t JOIN users u ON t.created_by=u.id
         LEFT JOIN priorities p ON t.priority_id=p.id
         LEFT JOIN departments d ON t.department_id=d.id
         LEFT JOIN users a ON t.assigned_to=a.id
-        WHERE t.department_id IN({$dids_str})
-        ORDER BY t.updated_at DESC LIMIT 10")->fetchAll();
+        WHERE t.department_id IN({$in_placeholders})
+        ORDER BY t.updated_at DESC LIMIT 10");
+    $st_recent->execute($dids_params);
+    $recent = $st_recent->fetchAll();
 
     // Workload per agent in department
-    $agents = db()->query("
+    $st_agents = db()->prepare("
         SELECT u.name, COUNT(t.id) as total, SUM(t.status='resolved') as resolved
         FROM tickets t JOIN users u ON t.assigned_to=u.id
         JOIN department_users du ON du.user_id=u.id
-        WHERE du.department_id IN({$dids_str}) AND t.status NOT IN('resolved','closed')
-        GROUP BY t.assigned_to ORDER BY total DESC LIMIT 8")->fetchAll();
+        WHERE du.department_id IN({$in_placeholders}) AND t.status NOT IN('resolved','closed')
+        GROUP BY t.assigned_to ORDER BY total DESC LIMIT 8");
+    $st_agents->execute($dids_params);
+    $agents = $st_agents->fetchAll();
     $by_status = [];
 
 } elseif ($role === 'agent') {
-    $st = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND status='open'");
-    $st->execute([$uid]);
+    $st_open = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND status='open'");
+    $st_open->execute([$uid]);
+    $st_inp = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND status='in_progress'");
+    $st_inp->execute([$uid]);
+    $st_res = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND status='resolved' AND DATE(resolved_at)=CURDATE()");
+    $st_res->execute([$uid]);
+    $st_ov = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND sla_breached=1 AND status NOT IN('resolved','closed')");
+    $st_ov->execute([$uid]);
+    $st_tot = db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=?");
+    $st_tot->execute([$uid]);
     $stats = [
-        'open'        => $st->fetchColumn(),
-        'in_progress' => db()->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND status='in_progress'")->execute([$uid]) ? db()->query("SELECT COUNT(*) FROM tickets WHERE assigned_to={$uid} AND status='in_progress'")->fetchColumn() : 0,
-        'resolved'    => db()->query("SELECT COUNT(*) FROM tickets WHERE assigned_to={$uid} AND status='resolved' AND DATE(resolved_at)=CURDATE()")->fetchColumn(),
-        'overdue'     => db()->query("SELECT COUNT(*) FROM tickets WHERE assigned_to={$uid} AND sla_breached=1 AND status NOT IN('resolved','closed')")->fetchColumn(),
+        'open'        => (int)$st_open->fetchColumn(),
+        'in_progress' => (int)$st_inp->fetchColumn(),
+        'resolved'    => (int)$st_res->fetchColumn(),
+        'overdue'     => (int)$st_ov->fetchColumn(),
         'unassigned'  => 0,
-        'total'       => db()->query("SELECT COUNT(*) FROM tickets WHERE assigned_to={$uid}")->fetchColumn(),
+        'total'       => (int)$st_tot->fetchColumn(),
     ];
-    $recent = db()->query("
+    $st_rec = db()->prepare("
         SELECT t.*, u.name as client_name, p.name_es as priority_name, p.color as priority_color, d.name as dept_name
         FROM tickets t JOIN users u ON t.created_by=u.id
         LEFT JOIN priorities p ON t.priority_id=p.id
         LEFT JOIN departments d ON t.department_id=d.id
-        WHERE t.assigned_to={$uid} ORDER BY t.updated_at DESC LIMIT 10")->fetchAll();
+        WHERE t.assigned_to=? ORDER BY t.updated_at DESC LIMIT 10");
+    $st_rec->execute([$uid]);
+    $recent = $st_rec->fetchAll();
     $agents = $by_status = [];
 
 } else {
     // Client
+    $st_co = db()->prepare("SELECT COUNT(*) FROM tickets WHERE created_by=? AND status='open'");
+    $st_co->execute([$uid]);
+    $st_ci = db()->prepare("SELECT COUNT(*) FROM tickets WHERE created_by=? AND status='in_progress'");
+    $st_ci->execute([$uid]);
+    $st_cr = db()->prepare("SELECT COUNT(*) FROM tickets WHERE created_by=? AND status='resolved'");
+    $st_cr->execute([$uid]);
+    $st_ct = db()->prepare("SELECT COUNT(*) FROM tickets WHERE created_by=?");
+    $st_ct->execute([$uid]);
     $stats = [
-        'open'        => db()->query("SELECT COUNT(*) FROM tickets WHERE created_by={$uid} AND status='open'")->fetchColumn(),
-        'in_progress' => db()->query("SELECT COUNT(*) FROM tickets WHERE created_by={$uid} AND status='in_progress'")->fetchColumn(),
-        'resolved'    => db()->query("SELECT COUNT(*) FROM tickets WHERE created_by={$uid} AND status='resolved'")->fetchColumn(),
+        'open'        => (int)$st_co->fetchColumn(),
+        'in_progress' => (int)$st_ci->fetchColumn(),
+        'resolved'    => (int)$st_cr->fetchColumn(),
         'overdue'     => 0,
         'unassigned'  => 0,
-        'total'       => db()->query("SELECT COUNT(*) FROM tickets WHERE created_by={$uid}")->fetchColumn(),
+        'total'       => (int)$st_ct->fetchColumn(),
     ];
-    $recent = db()->query("
+    $st_crec = db()->prepare("
         SELECT t.*, p.name_es as priority_name, p.color as priority_color, d.name as dept_name, a.name as agent_name
         FROM tickets t
         LEFT JOIN priorities p ON t.priority_id=p.id
         LEFT JOIN departments d ON t.department_id=d.id
         LEFT JOIN users a ON t.assigned_to=a.id
-        WHERE t.created_by={$uid} ORDER BY t.updated_at DESC LIMIT 10")->fetchAll();
+        WHERE t.created_by=? ORDER BY t.updated_at DESC LIMIT 10");
+    $st_crec->execute([$uid]);
+    $recent = $st_crec->fetchAll();
     $agents = $by_status = [];
 }
 

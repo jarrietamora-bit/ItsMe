@@ -5,8 +5,8 @@ require_role(['super_admin','admin','supervisor']);
 $user  = current_user();
 $role  = current_role();
 $uid   = $user['id'];
-$from  = $_GET['from'] ?? date('Y-m-01');
-$to    = $_GET['to']   ?? date('Y-m-d');
+$from  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['from'] ?? '') ? $_GET['from'] : date('Y-m-01');
+$to    = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['to']   ?? '') ? $_GET['to']   : date('Y-m-d');
 $dept  = (int)($_GET['dept'] ?? 0);
 
 // Build dept filter

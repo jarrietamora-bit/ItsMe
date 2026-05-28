@@ -40,7 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         }
     }
 }
-$user      = current_user();
+$st_user = db()->prepare("SELECT * FROM users WHERE id=?");
+$st_user->execute([$uid]);
+$user      = $st_user->fetch();
 $depts     = get_user_departments($uid);
 $page_title = t('profile');
 include ROOT . '/templates/header.php';

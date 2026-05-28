@@ -78,10 +78,7 @@ include ROOT . '/templates/header.php';
             <td><input type="number" name="sla_resolution[]" class="form-control form-control-sm" value="<?= $s['resolution_hours'] ?>" step="0.5" min="0.5"></td>
             <td class="text-center"><input type="checkbox" name="sla_bh[<?= $i ?>]" class="form-check-input" <?= $s['business_hours_only']?'checked':'' ?>></td>
             <td>
-              <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar?')">
-                <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="del_id" value="<?= $s['id'] ?>">
-                <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-trash"></i></button>
-              </form>
+              <button class="btn btn-sm btn-outline-danger py-0" onclick="submitDeleteSla(<?= $s['id'] ?>)" type="button"><i class="bi bi-trash"></i></button>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -109,6 +106,21 @@ include ROOT . '/templates/header.php';
     </div>
   </form>
 </div>
+
+<form method="post" id="deleteSlaForm" style="display:none">
+  <?= csrf_field() ?>
+  <input type="hidden" name="action" value="delete_policy">
+  <input type="hidden" name="del_id" id="deleteSlaId" value="">
+</form>
+<script>
+function submitDeleteSla(id) {
+  if (!confirm('¿Eliminar?')) return;
+  document.getElementById('deleteSlaId').value = id;
+  var form = document.getElementById('deleteSlaForm');
+  form.querySelector('input[name="action"]').value = 'delete';
+  form.submit();
+}
+</script>
 
 <div class="card border-0 shadow-sm">
   <div class="card-header bg-white"><strong>Prioridades del sistema</strong></div>

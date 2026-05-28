@@ -19,6 +19,14 @@ if (!$ticket_id) {
     exit;
 }
 
+$chk = db()->prepare("SELECT id, created_by, assigned_to FROM tickets WHERE id=?");
+$chk->execute([$ticket_id]);
+$chk_ticket = $chk->fetch();
+if (!$chk_ticket || !can_view_ticket($chk_ticket)) {
+    echo json_encode(['success' => false, 'error' => 'Access denied']);
+    exit;
+}
+
 if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     $err = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
     echo json_encode(['success' => false, 'error' => 'Upload error: ' . $err]);
@@ -28,6 +36,7 @@ if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
 $uid      = (int)$_SESSION['uid'];
 $orig     = $_FILES['file']['name'];
 $size     = (int)$_FILES['file']['size'];
+$mime     = $_FILES['file']['type'] ?? 'application/octet-stream';
 
 $fname = upload_file($_FILES['file'], 'tickets/' . $ticket_id);
 if (!$fname) {
@@ -35,8 +44,8 @@ if (!$fname) {
     exit;
 }
 
-db()->prepare("INSERT INTO ticket_attachments (ticket_id, reply_id, user_id, filename, original_name, file_size) VALUES (?, NULL, ?, ?, ?, ?)")
-   ->execute([$ticket_id, $uid, $fname, $orig, $size]);
+db()->prepare("INSERT INTO ticket_attachments (ticket_id, reply_id, user_id, filename, original_name, file_size, mime_type) VALUES (?, NULL, ?, ?, ?, ?, ?)")
+   ->execute([$ticket_id, $uid, $fname, $orig, $size, $mime]);
 
 $att_id = (int)db()->lastInsertId();
 
