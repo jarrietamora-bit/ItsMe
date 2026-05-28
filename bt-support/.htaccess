@@ -3,18 +3,10 @@ DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /bt-support/
 
-    # Block install folder if config exists
-    RewriteCond %{REQUEST_URI} ^/bt-support/install/
-    RewriteCond %{DOCUMENT_ROOT}/bt-support/config/config.php -f
-    RewriteRule ^ - [F,L]
-
-    # Don't rewrite existing files or directories
+    # Auto-detect base path — works regardless of folder name or domain root
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-
-    # Route everything to index.php
     RewriteRule ^(.*)$ index.php?_url=$1 [QSA,L]
 </IfModule>
 
