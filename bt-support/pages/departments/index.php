@@ -6,6 +6,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     $action = $_POST['action'] ?? '';
     $did    = (int)($_POST['did'] ?? 0);
     if ($action === 'delete' && $did) {
+        $st_tc = db()->prepare("SELECT COUNT(*) FROM tickets WHERE department_id=? AND status NOT IN('resolved','closed')");
+        $st_tc->execute([$did]);
+        $ticket_count = (int)$st_tc->fetchColumn();
+        if ($ticket_count > 0) {
+            flash('error', "No se puede eliminar: el departamento tiene {$ticket_count} ticket(s) activo(s).");
+            redirect(base_url('departments'));
+        }
         db()->prepare("DELETE FROM departments WHERE id=?")->execute([$did]);
         flash('success', t('dept_deleted'));
     }

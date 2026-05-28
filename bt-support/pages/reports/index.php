@@ -14,14 +14,20 @@ $dept_filter = '';
 $dept_params = [];
 if ($role === 'supervisor') {
     $dept_ids = array_column(get_user_departments($uid),'id');
-    if ($dept_ids) $dept_filter = "AND t.department_id IN(" . implode(',',array_map('intval',$dept_ids)) . ")";
-    else $dept_filter = "AND 0=1";
+    if ($dept_ids) {
+        $dept_placeholders = implode(',', array_fill(0, count($dept_ids), '?'));
+        $dept_filter = "AND t.department_id IN({$dept_placeholders})";
+        $dept_params = $dept_ids;
+    } else {
+        $dept_filter = "AND 0=1";
+    }
 } elseif ($dept) {
-    $dept_filter = "AND t.department_id = {$dept}";
+    $dept_filter = "AND t.department_id = ?";
+    $dept_params = [$dept];
 }
 
 // Overview stats
-$stats = db()->query("SELECT
+$st_stats = db()->prepare("SELECT
   COUNT(*) as total,
   SUM(status='open') as open_count,
   SUM(status='in_progress') as in_progress,
@@ -30,22 +36,34 @@ $stats = db()->query("SELECT
   SUM(sla_breached=1) as sla_breached,
   AVG(CASE WHEN first_response_at IS NOT NULL THEN TIMESTAMPDIFF(MINUTE,created_at,first_response_at) END) as avg_first_resp,
   AVG(CASE WHEN resolved_at IS NOT NULL THEN TIMESTAMPDIFF(MINUTE,created_at,resolved_at) END) as avg_resolution
-  FROM tickets t WHERE DATE(created_at) BETWEEN '{$from}' AND '{$to}' {$dept_filter}")->fetch();
+  FROM tickets t WHERE DATE(created_at) BETWEEN ? AND ? {$dept_filter}");
+$st_stats->execute(array_merge([$from, $to], $dept_params));
+$stats = $st_stats->fetch();
 
 // CSAT
-$csat = db()->query("SELECT AVG(r.rating) as avg_rating, COUNT(*) as total_ratings FROM ratings r JOIN tickets t ON r.ticket_id=t.id WHERE DATE(t.created_at) BETWEEN '{$from}' AND '{$to}' {$dept_filter}")->fetch();
+$st_csat = db()->prepare("SELECT AVG(r.rating) as avg_rating, COUNT(*) as total_ratings FROM ratings r JOIN tickets t ON r.ticket_id=t.id WHERE DATE(t.created_at) BETWEEN ? AND ? {$dept_filter}");
+$st_csat->execute(array_merge([$from, $to], $dept_params));
+$csat = $st_csat->fetch();
 
 // By agent
-$by_agent = db()->query("SELECT u.name, COUNT(t.id) as total, SUM(t.status='resolved') as resolved, SUM(t.status='closed') as closed, SUM(t.sla_breached) as breached, AVG(TIMESTAMPDIFF(MINUTE,t.created_at,t.first_response_at)) as avg_resp FROM tickets t JOIN users u ON t.assigned_to=u.id WHERE t.assigned_to IS NOT NULL AND DATE(t.created_at) BETWEEN '{$from}' AND '{$to}' {$dept_filter} GROUP BY t.assigned_to ORDER BY total DESC")->fetchAll();
+$st_by_agent = db()->prepare("SELECT u.name, COUNT(t.id) as total, SUM(t.status='resolved') as resolved, SUM(t.status='closed') as closed, SUM(t.sla_breached) as breached, AVG(TIMESTAMPDIFF(MINUTE,t.created_at,t.first_response_at)) as avg_resp FROM tickets t JOIN users u ON t.assigned_to=u.id WHERE t.assigned_to IS NOT NULL AND DATE(t.created_at) BETWEEN ? AND ? {$dept_filter} GROUP BY t.assigned_to ORDER BY total DESC");
+$st_by_agent->execute(array_merge([$from, $to], $dept_params));
+$by_agent = $st_by_agent->fetchAll();
 
 // By department
-$by_dept = db()->query("SELECT d.name, d.color, COUNT(t.id) as total, SUM(t.status IN('resolved','closed')) as resolved FROM tickets t JOIN departments d ON t.department_id=d.id WHERE DATE(t.created_at) BETWEEN '{$from}' AND '{$to}' {$dept_filter} GROUP BY t.department_id ORDER BY total DESC")->fetchAll();
+$st_by_dept = db()->prepare("SELECT d.name, d.color, COUNT(t.id) as total, SUM(t.status IN('resolved','closed')) as resolved FROM tickets t JOIN departments d ON t.department_id=d.id WHERE DATE(t.created_at) BETWEEN ? AND ? {$dept_filter} GROUP BY t.department_id ORDER BY total DESC");
+$st_by_dept->execute(array_merge([$from, $to], $dept_params));
+$by_dept = $st_by_dept->fetchAll();
 
 // By category
-$by_cat = db()->query("SELECT COALESCE(c.name,'Sin categoría') as name, COUNT(*) as total FROM tickets t LEFT JOIN categories c ON t.category_id=c.id WHERE DATE(t.created_at) BETWEEN '{$from}' AND '{$to}' {$dept_filter} GROUP BY t.category_id ORDER BY total DESC LIMIT 10")->fetchAll();
+$st_by_cat = db()->prepare("SELECT COALESCE(c.name,'Sin categoría') as name, COUNT(*) as total FROM tickets t LEFT JOIN categories c ON t.category_id=c.id WHERE DATE(t.created_at) BETWEEN ? AND ? {$dept_filter} GROUP BY t.category_id ORDER BY total DESC LIMIT 10");
+$st_by_cat->execute(array_merge([$from, $to], $dept_params));
+$by_cat = $st_by_cat->fetchAll();
 
 // Volume by day
-$by_day = db()->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM tickets t WHERE DATE(created_at) BETWEEN '{$from}' AND '{$to}' {$dept_filter} GROUP BY DATE(created_at) ORDER BY day")->fetchAll();
+$st_by_day = db()->prepare("SELECT DATE(created_at) as day, COUNT(*) as total FROM tickets t WHERE DATE(created_at) BETWEEN ? AND ? {$dept_filter} GROUP BY DATE(created_at) ORDER BY day");
+$st_by_day->execute(array_merge([$from, $to], $dept_params));
+$by_day = $st_by_day->fetchAll();
 
 // Export CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {

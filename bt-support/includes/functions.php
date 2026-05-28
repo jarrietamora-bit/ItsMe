@@ -118,7 +118,7 @@ function upload_file(array $file, string $dir, array $allowed_types = []): ?stri
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if ($allowed_types && !in_array($ext, $allowed_types, true)) return null;
 
-    $safe_types = ['jpg','jpeg','png','gif','pdf','doc','docx','xls','xlsx','zip','txt','csv'];
+    $safe_types = ['jpg','jpeg','png','gif','pdf','doc','docx','xls','xlsx','zip','txt','csv','svg'];
     if (!in_array($ext, $safe_types, true)) return null;
 
     $dest_dir = __DIR__ . '/../uploads/' . trim($dir, '/');

@@ -115,7 +115,7 @@ $logo = setting('company_logo');
               <label class="form-label"><?= t('per_page') ?></label>
               <select name="tickets_per_page" class="form-select">
                 <?php foreach ([10,25,50,100] as $n): ?>
-                  <option value="<?= $n ?>" <?= setting('tickets_per_page')===$n?'selected':'' ?>><?= $n ?></option>
+                  <option value="<?= $n ?>" <?= setting('tickets_per_page')==$n?'selected':'' ?>><?= $n ?></option>
                 <?php endforeach; ?>
               </select>
             </div>

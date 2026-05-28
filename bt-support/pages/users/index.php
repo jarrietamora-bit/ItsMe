@@ -21,6 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         flash('success', t('user_updated'));
     }
     if ($action === 'delete' && $user_id && $user_id !== (int)$_SESSION['uid']) {
+        $st_utc = db()->prepare("SELECT COUNT(*) FROM tickets WHERE created_by=?");
+        $st_utc->execute([$user_id]);
+        $ticket_count = (int)$st_utc->fetchColumn();
+        if ($ticket_count > 0) {
+            flash('error', "No se puede eliminar: el usuario tiene {$ticket_count} ticket(s). Desactívelo en su lugar.");
+            redirect(base_url('users'));
+        }
         db()->prepare("DELETE FROM users WHERE id=?")->execute([$user_id]);
         flash('success', t('user_deleted'));
     }
