@@ -101,6 +101,7 @@ $lang          = current_lang();
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-envelope"></i></span>
           <input type="email" name="email" class="form-control" placeholder="usuario@empresa.com"
+                 autocomplete="username email"
                  value="<?= h($_POST['email'] ?? '') ?>" required autofocus>
         </div>
       </div>
@@ -108,7 +109,7 @@ $lang          = current_lang();
         <label class="form-label fw-semibold"><?= t('password') ?></label>
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-lock"></i></span>
-          <input type="password" name="password" id="pwdField" class="form-control" required>
+          <input type="password" name="password" id="pwdField" class="form-control" autocomplete="current-password" required>
           <button type="button" class="btn btn-outline-secondary" onclick="togglePwd()">
             <i class="bi bi-eye" id="pwdIcon"></i>
           </button>
