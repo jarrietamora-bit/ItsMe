@@ -23,7 +23,7 @@ function nav_item(string $icon, string $label, string $page, string $cur): strin
       <?= nav_item('ticket-detailed', t('tickets'), 'tickets', $cur) ?>
       <?= nav_item('plus-circle', t('new_ticket'), 'tickets/create', $cur) ?>
 
-      <?php if (is_agent()): ?>
+      <?php if (is_agent() && !is_admin()): ?>
       <!-- Knowledge Base -->
       <li class="nav-item mt-2">
         <small class="text-uppercase text-muted fw-semibold ps-2" style="font-size:10px;letter-spacing:.5px"><?= t('knowledge_base') ?></small>
@@ -68,6 +68,7 @@ function nav_item(string $icon, string $label, string $page, string $cur): strin
             <li><?= nav_item('clock-history', t('sla_settings'), 'settings/sla', $cur) ?></li>
             <li><?= nav_item('file-text', t('email_templates'), 'settings/templates', $cur) ?></li>
             <li><?= nav_item('chat-right-text', t('canned_responses'), 'settings/canned', $cur) ?></li>
+            <li><?= nav_item('tags', t('tags'), 'settings/tags', $cur) ?></li>
           </ul>
         </div>
       </li>

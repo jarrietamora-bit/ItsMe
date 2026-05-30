@@ -91,6 +91,7 @@ $routes = [
     'settings/sla'            => 'pages/settings/sla.php',
     'settings/templates'      => 'pages/settings/templates.php',
     'settings/canned'         => 'pages/settings/canned.php',
+    'settings/tags'           => 'pages/settings/tags.php',
 
     // AJAX
     'ajax/notifications'      => 'ajax/notifications.php',

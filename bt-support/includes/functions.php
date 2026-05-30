@@ -2,8 +2,19 @@
 function base_url(string $path = ''): string {
     static $cfg = null;
     if ($cfg === null) $cfg = require __DIR__ . '/../config/config.php';
-    $base = rtrim($cfg['app_url'], '/');
-    return $base . ($path ? '/' . ltrim($path, '/') : '');
+    $configured = rtrim($cfg['app_url'] ?? '', '/');
+
+    // Auto-detect if not configured or still pointing to localhost/127.0.0.1
+    if (!$configured || str_contains($configured, 'localhost') || str_contains($configured, '127.0.0.1')) {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        // Detect subfolder by looking at SCRIPT_NAME
+        $script = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+        $folder = rtrim(dirname($script), '/');
+        $configured = $scheme . '://' . $host . $folder;
+    }
+
+    return $configured . ($path ? '/' . ltrim($path, '/') : '');
 }
 
 function h(string $s): string {

@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify() && is_agent()) {
         db()->prepare("UPDATE tickets SET assigned_to = ? WHERE id IN({$in})")->execute([$uid]);
         flash('success', t('ticket_updated'));
     }
-    redirect(base_url('tickets') . '?' . http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search])));
+    redirect(base_url('tickets') . '?' . http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search,'dept'=>$f_dept,'tag'=>$f_tag?:null])));
 }
 
 // Count & fetch
@@ -252,7 +252,7 @@ include ROOT . '/templates/header.php';
     <nav><ul class="pagination pagination-sm mb-0">
       <?php for ($i=1;$i<=$pag['total_pages'];$i++): ?>
         <li class="page-item <?= $i===$page_num?'active':'' ?>">
-          <a class="page-link" href="?<?= http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search,'p'=>$i])) ?>"><?= $i ?></a>
+          <a class="page-link" href="?<?= http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search,'dept'=>$f_dept,'tag'=>$f_tag?:null,'p'=>$i])) ?>"><?= $i ?></a>
         </li>
       <?php endfor; ?>
     </ul></nav>

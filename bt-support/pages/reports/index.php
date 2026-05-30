@@ -71,8 +71,39 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Disposition: attachment; filename="report_' . $from . '_' . $to . '.csv"');
     $out = fopen('php://output','w');
     fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM
+
+    // Section 1: Summary
+    fputcsv($out, ['RESUMEN']);
+    fputcsv($out, ['Total','Abiertos','Resueltos','Cerrados','SLA Incumplido','Resolución prom.']);
+    fputcsv($out, [
+        $stats['total'],
+        $stats['open_count'],
+        $stats['resolved'],
+        $stats['closed'],
+        $stats['sla_breached'],
+        round($stats['avg_resolution'] ?? 0),
+    ]);
+
+    // Blank separator
+    fputcsv($out, []);
+
+    // Section 2: By agent
+    fputcsv($out, ['POR AGENTE']);
     fputcsv($out, ['Agente','Total','Resueltos','Cerrados','SLA Incumplido','Resp. prom. (min)']);
-    foreach ($by_agent as $a) fputcsv($out, [$a['name'],$a['total'],$a['resolved'],$a['closed'],$a['breached'],round($a['avg_resp']??0)]);
+    foreach ($by_agent as $a) {
+        fputcsv($out, [$a['name'],$a['total'],$a['resolved'],$a['closed'],$a['breached'],round($a['avg_resp']??0)]);
+    }
+
+    // Blank separator
+    fputcsv($out, []);
+
+    // Section 3: By department
+    fputcsv($out, ['POR DEPARTAMENTO']);
+    fputcsv($out, ['Departamento','Total','Resueltos']);
+    foreach ($by_dept as $d) {
+        fputcsv($out, [$d['name'],$d['total'],$d['resolved']]);
+    }
+
     fclose($out);
     exit;
 }
