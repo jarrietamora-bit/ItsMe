@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         db()->prepare("UPDATE tickets SET status='closed', closed_at=NOW(), updated_at=NOW() WHERE id=?")->execute([$t_id]);
         flash('success', t('ticket_closed'));
     }
-    if ($action === 'reopen') {
+    if ($action === 'reopen' && is_agent()) {
         db()->prepare("UPDATE tickets SET status='open', resolved_at=NULL, closed_at=NULL, updated_at=NOW() WHERE id=?")->execute([$t_id]);
         flash('success', t('ticket_reopened'));
     }
@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     if ($action === 'add_tag' && is_agent()) {
         $tag_name = trim($_POST['tag_name'] ?? '');
         if ($tag_name !== '') {
-            db()->prepare("INSERT IGNORE INTO tags (name) VALUES (?)")->execute([$tag_name]);
+            db()->prepare("INSERT IGNORE INTO tags (name, color) VALUES (?, '#6c757d')")->execute([$tag_name]);
             $tag_id_row = db()->prepare("SELECT id FROM tags WHERE name=?");
             $tag_id_row->execute([$tag_name]);
             $tag_id = (int)$tag_id_row->fetchColumn();
@@ -176,12 +176,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     if ($action === 'add_related' && is_agent()) {
         $rel_number = trim($_POST['related_number'] ?? '');
         if ($rel_number !== '') {
-            $rel_st = db()->prepare("SELECT id FROM tickets WHERE ticket_number=?");
+            $rel_st = db()->prepare("SELECT t.*, u.name as client_name, u.email as client_email FROM tickets t JOIN users u ON t.created_by=u.id WHERE t.ticket_number=?");
             $rel_st->execute([$rel_number]);
-            $rel_ticket_id = (int)$rel_st->fetchColumn();
-            if ($rel_ticket_id && $rel_ticket_id !== $t_id) {
-                $id1 = min($t_id, $rel_ticket_id);
-                $id2 = max($t_id, $rel_ticket_id);
+            $rel_ticket = $rel_st->fetch();
+            $rel_ticket_id = $rel_ticket ? (int)$rel_ticket['id'] : 0;
+            if ($rel_ticket_id && $rel_ticket_id !== $t_id && can_view_ticket($rel_ticket)) {
                 db()->prepare("INSERT IGNORE INTO related_tickets (ticket_id, related_id) VALUES (?,?)")->execute([$t_id, $rel_ticket_id]);
             }
         }
@@ -278,7 +277,7 @@ include ROOT . '/templates/header.php';
         <button class="btn btn-secondary btn-sm"><?= t('close_ticket') ?></button>
       </form>
     <?php endif; ?>
-    <?php if (in_array($ticket['status'],['resolved','closed'])): ?>
+    <?php if (is_agent() && in_array($ticket['status'],['resolved','closed'])): ?>
       <form method="post" class="d-inline">
         <?= csrf_field() ?><input type="hidden" name="action" value="reopen">
         <button class="btn btn-outline-primary btn-sm"><?= t('reopen_ticket') ?></button>
@@ -661,7 +660,7 @@ document.querySelectorAll('.star-btn').forEach(star => {
   });
 });
 
-// Active tab switches textarea name and is_internal flag
+// Active tab switches textarea name, is_internal flag, and file input visibility
 document.querySelectorAll('#replyTabs a').forEach(tab => {
   tab.addEventListener('shown.bs.tab', e => {
     const isNote = e.target.getAttribute('href') === '#noteTab';
@@ -669,6 +668,12 @@ document.querySelectorAll('#replyTabs a').forEach(tab => {
     document.getElementById('noteMsg')?.setAttribute('name', isNote ? 'message' : '');
     const field = document.getElementById('isInternalField');
     if (field) field.value = isNote ? '1' : '0';
+    const fileWrap = document.querySelector('#publicTab .mt-2');
+    if (fileWrap) {
+      fileWrap.style.display = isNote ? 'none' : '';
+      const fi = fileWrap.querySelector('input[type="file"]');
+      if (fi) fi.disabled = isNote;
+    }
   });
 });
 

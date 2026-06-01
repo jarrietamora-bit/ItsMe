@@ -103,8 +103,9 @@ function login_user(string $email, string $password, bool $remember = false): bo
     $_SESSION['last_activity'] = time();
 
     if ($remember) {
-        $token = bin2hex(random_bytes(32));
-        setcookie('remember_token', $token, time() + 30 * 86400, '/', '', false, true);
+        $token  = bin2hex(random_bytes(32));
+        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        setcookie('remember_token', $token, time() + 30 * 86400, '/', '', $secure, true);
         db()->prepare("UPDATE users SET remember_token = ? WHERE id = ?")->execute([hash('sha256', $token), $user['id']]);
     }
     return true;

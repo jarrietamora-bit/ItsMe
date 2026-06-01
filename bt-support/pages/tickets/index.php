@@ -24,7 +24,7 @@ if ($role === 'client') {
     $where[] = 't.created_by = ?';
     $params[] = $uid;
 } elseif ($role === 'agent') {
-    $where[] = 't.assigned_to = ?';
+    $where[] = '(t.assigned_to = ? OR t.assigned_to IS NULL)';
     $params[] = $uid;
 } elseif ($role === 'supervisor') {
     $dept_ids = array_column(get_user_departments($uid),'id');
@@ -59,12 +59,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify() && is_agent()) {
         $new_status = $bulk === 'close' ? 'closed' : ($bulk === 'resolve' ? 'resolved' : $bulk);
         $in = implode(',', $ids);
         $resolved_sql = in_array($new_status,['resolved','closed']) ? ", resolved_at = NOW()" : '';
-        db()->prepare("UPDATE tickets SET status = ?{$resolved_sql} WHERE id IN({$in})")->execute([$new_status]);
+        if (!is_supervisor()) {
+            db()->prepare("UPDATE tickets SET status = ?{$resolved_sql} WHERE id IN({$in}) AND (assigned_to = ? OR assigned_to IS NULL)")->execute([$new_status, $uid]);
+        } else {
+            db()->prepare("UPDATE tickets SET status = ?{$resolved_sql} WHERE id IN({$in})")->execute([$new_status]);
+        }
         flash('success', t('ticket_updated'));
     }
     if ($ids && $bulk === 'assign_me' && is_agent()) {
         $in = implode(',', $ids);
-        db()->prepare("UPDATE tickets SET assigned_to = ? WHERE id IN({$in})")->execute([$uid]);
+        if (!is_supervisor()) {
+            db()->prepare("UPDATE tickets SET assigned_to = ? WHERE id IN({$in}) AND (assigned_to IS NULL OR assigned_to = ?)")->execute([$uid, $uid]);
+        } else {
+            db()->prepare("UPDATE tickets SET assigned_to = ? WHERE id IN({$in})")->execute([$uid]);
+        }
         flash('success', t('ticket_updated'));
     }
     redirect(base_url('tickets') . '?' . http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search,'dept'=>$f_dept,'tag'=>$f_tag?:null])));
@@ -252,7 +260,7 @@ include ROOT . '/templates/header.php';
     <nav><ul class="pagination pagination-sm mb-0">
       <?php for ($i=1;$i<=$pag['total_pages'];$i++): ?>
         <li class="page-item <?= $i===$page_num?'active':'' ?>">
-          <a class="page-link" href="?<?= http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search,'dept'=>$f_dept,'tag'=>$f_tag?:null,'p'=>$i])) ?>"><?= $i ?></a>
+          <a class="page-link" href="?<?= http_build_query(array_filter(['status'=>$f_status,'priority'=>$f_priority,'q'=>$f_search,'dept'=>$f_dept,'tag'=>$f_tag?:null,'assigned'=>$f_assigned,'p'=>$i])) ?>"><?= $i ?></a>
         </li>
       <?php endfor; ?>
     </ul></nav>

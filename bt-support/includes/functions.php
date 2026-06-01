@@ -56,10 +56,12 @@ function setting_set(string $key, string $value): void {
 
 function generate_ticket_number(): string {
     $year = date('Y');
-    $st = db()->prepare("SELECT COUNT(*) FROM tickets WHERE YEAR(created_at) = ?");
-    $st->execute([$year]);
-    $count = (int)$st->fetchColumn() + 1;
-    return 'TKT-' . $year . '-' . str_pad($count, 5, '0', STR_PAD_LEFT);
+    $prefix = 'TKT-' . $year . '-';
+    $st = db()->prepare("SELECT MAX(CAST(SUBSTRING_INDEX(ticket_number, '-', -1) AS UNSIGNED)) FROM tickets WHERE ticket_number LIKE ?");
+    $st->execute([$prefix . '%']);
+    $max  = (int)$st->fetchColumn();
+    $next = $max + 1;
+    return $prefix . str_pad($next, 5, '0', STR_PAD_LEFT);
 }
 
 function time_ago(string $datetime): string {
@@ -129,7 +131,7 @@ function upload_file(array $file, string $dir, array $allowed_types = []): ?stri
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if ($allowed_types && !in_array($ext, $allowed_types, true)) return null;
 
-    $safe_types = ['jpg','jpeg','png','gif','pdf','doc','docx','xls','xlsx','zip','txt','csv','svg'];
+    $safe_types = ['jpg','jpeg','png','gif','pdf','doc','docx','xls','xlsx','zip','txt','csv'];
     if (!in_array($ext, $safe_types, true)) return null;
 
     $dest_dir = __DIR__ . '/../uploads/' . trim($dir, '/');
@@ -157,6 +159,7 @@ function log_activity(string $action, string $entity_type = '', int $entity_id =
 }
 
 function paginate(int $total, int $per_page, int $current_page): array {
+    if ($per_page <= 0) $per_page = 25;
     $total_pages = (int)ceil($total / $per_page);
     $offset = ($current_page - 1) * $per_page;
     return ['total' => $total, 'per_page' => $per_page, 'current' => $current_page, 'total_pages' => $total_pages, 'offset' => $offset];

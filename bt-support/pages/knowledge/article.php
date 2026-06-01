@@ -8,16 +8,16 @@ $art   = $st->fetch();
 if (!$art) { include ROOT . '/pages/404.php'; exit; }
 if (!$art['is_public'] && !is_agent()) { http_response_code(403); exit; }
 
-// Increment views
-db()->prepare("UPDATE kb_articles SET views=views+1 WHERE id=?")->execute([$id]);
-
-// Helpful vote
+// Helpful vote (process before view increment to avoid counting the redirect)
 if (isset($_GET['helpful']) && is_logged_in()) {
     $v = $_GET['helpful'] === 'yes' ? 'helpful_yes' : 'helpful_no';
     db()->prepare("UPDATE kb_articles SET {$v}={$v}+1 WHERE id=?")->execute([$id]);
     flash('success','¡Gracias por tu calificación!');
     redirect(base_url('knowledge/article?id='.$id));
 }
+
+// Increment views (only on normal page load, not on vote redirect)
+db()->prepare("UPDATE kb_articles SET views=views+1 WHERE id=?")->execute([$id]);
 
 $page_title = $art["title_{$lang}"];
 if (!is_logged_in()) {

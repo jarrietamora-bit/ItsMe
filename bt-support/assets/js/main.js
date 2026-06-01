@@ -32,10 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('markAllRead')?.addEventListener('click', e => {
     e.preventDefault();
     fetch(`${BASE_URL}/ajax/notifications?action=mark_all_read`)
-      .then(() => {
-        loadNotifications();
-        document.querySelectorAll('.badge.rounded-pill').forEach(b => b.remove());
-      });
+      .then(() => loadNotifications());
   });
 
   // Auto-dismiss alerts after 5s
