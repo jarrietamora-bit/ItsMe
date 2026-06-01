@@ -185,5 +185,74 @@ function get_user_departments(int $user_id): array {
 }
 
 function check_sla_breach(): void {
-    db()->exec("UPDATE tickets SET sla_breached = 1 WHERE sla_due_at IS NOT NULL AND sla_due_at < NOW() AND status NOT IN ('resolved','closed') AND sla_breached = 0");
+    // Find tickets that are NEWLY breaching (not yet marked)
+    $st = db()->query(
+        "SELECT t.id, t.ticket_number, t.subject, t.department_id, t.assigned_to
+         FROM tickets t
+         WHERE t.sla_due_at IS NOT NULL
+           AND t.sla_due_at < NOW()
+           AND t.status NOT IN ('resolved','closed')
+           AND t.sla_breached = 0"
+    );
+    $newly_breached = $st->fetchAll();
+
+    if (empty($newly_breached)) return;
+
+    // Mark all as breached in one query
+    $ids = implode(',', array_map('intval', array_column($newly_breached, 'id')));
+    db()->exec("UPDATE tickets SET sla_breached = 1 WHERE id IN ({$ids})");
+
+    // Send escalation notifications if enabled
+    if (setting('sla_escalation_enabled') !== '1') return;
+
+    $notify_whom = setting('sla_escalation_notify') ?: 'supervisor'; // supervisor | admin | both
+
+    foreach ($newly_breached as $ticket) {
+        $url  = base_url('tickets/view?id=' . $ticket['id']);
+        $num  = $ticket['ticket_number'];
+        $subj = $ticket['subject'];
+        $title = "⚠️ SLA vencido: #{$num}";
+
+        $notified_ids = [];
+
+        // Notify supervisors of the ticket's department
+        if ($notify_whom !== 'admin' && $ticket['department_id']) {
+            $sup_st = db()->prepare(
+                "SELECT u.id, u.email, u.name FROM users u
+                 JOIN department_users du ON u.id = du.user_id
+                 WHERE du.department_id = ? AND du.is_supervisor = 1 AND u.status = 'active'"
+            );
+            $sup_st->execute([$ticket['department_id']]);
+            foreach ($sup_st->fetchAll() as $sup) {
+                send_notification($sup['id'], 'sla_breach', $title, $subj, $url);
+                $notified_ids[] = $sup['id'];
+                try {
+                    mailer()->send(
+                        $sup['email'],
+                        "⚠️ SLA vencido — Ticket #{$num}",
+                        "<h3>SLA Vencido</h3><p>El ticket <strong>#{$num}</strong>: <em>" . htmlspecialchars($subj) . "</em> ha superado su tiempo de resolución SLA y requiere atención inmediata.</p><p><a href=\"{$url}\">Ver ticket</a></p>",
+                        $sup['name']
+                    );
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // Notify admins
+        if ($notify_whom !== 'supervisor') {
+            $adm_st = db()->query("SELECT id, email, name FROM users WHERE role IN ('super_admin','admin') AND status='active'");
+            foreach ($adm_st->fetchAll() as $adm) {
+                if (in_array($adm['id'], $notified_ids, true)) continue;
+                send_notification($adm['id'], 'sla_breach', $title, $subj, $url);
+                try {
+                    mailer()->send(
+                        $adm['email'],
+                        "⚠️ SLA vencido — Ticket #{$num}",
+                        "<h3>SLA Vencido</h3><p>El ticket <strong>#{$num}</strong>: <em>" . htmlspecialchars($subj) . "</em> ha superado su tiempo de resolución SLA.</p><p><a href=\"{$url}\">Ver ticket</a></p>",
+                        $adm['name']
+                    );
+                } catch (\Throwable $e) {}
+            }
+        }
+    }
 }
+

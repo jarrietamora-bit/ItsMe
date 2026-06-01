@@ -402,8 +402,10 @@ INSERT IGNORE INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('timezone',           'America/Costa_Rica'),
 ('allow_registration', '1'),
 ('require_email_verify','0'),
-('auto_close_days',    '7'),
-('tickets_per_page',   '25');
+('auto_close_days',          '7'),
+('tickets_per_page',         '25'),
+('sla_escalation_enabled',   '0'),
+('sla_escalation_notify',    'supervisor');
 
 -- Default department
 INSERT IGNORE INTO `departments` (`name`, `description`, `color`) VALUES
