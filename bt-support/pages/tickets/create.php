@@ -18,6 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dept_id   = (int)($_POST['department_id'] ?? 0) ?: null;
         $assigned  = is_agent() ? ((int)($_POST['assigned_to'] ?? 0) ?: null) : null;
 
+        // Custom resolution deadline (supervisor/admin override)
+        $custom_due = null;
+        if (is_supervisor() && !empty($_POST['resolution_due'])) {
+            $ts = strtotime($_POST['resolution_due']);
+            if ($ts > time()) $custom_due = date('Y-m-d H:i:s', $ts);
+        }
+
         if (!$subject) $errors[] = t('required') . ' (' . t('subject') . ')';
         if (!$message) $errors[] = t('required') . ' (Mensaje)';
 
@@ -30,9 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors)) {
             $ticket_num = generate_ticket_number();
 
-            // Calculate SLA due date
+            // Calculate SLA due date (custom override takes priority over policy)
             $sla_due = null;
-            if ($priority) {
+            if ($custom_due) {
+                $sla_due = $custom_due;
+            } elseif ($priority) {
                 $sla = db()->prepare("SELECT resolution_hours FROM sla_policies WHERE priority_id = ?");
                 $sla->execute([$priority]);
                 $sla_row = $sla->fetch();
@@ -114,7 +123,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $priorities  = db()->query("SELECT * FROM priorities ORDER BY level")->fetchAll();
 $departments = db()->query("SELECT * FROM departments WHERE status='active' ORDER BY name")->fetchAll();
 $categories  = db()->query("SELECT * FROM categories WHERE status='active' ORDER BY name")->fetchAll();
-$agents      = is_agent() ? db()->query("SELECT id, name FROM users WHERE role IN('agent','supervisor') AND status='active' ORDER BY name")->fetchAll() : [];
+// Agents list: admins see all, supervisors see only agents in their departments
+$agents = [];
+if (is_admin()) {
+    $agents_raw = db()->query("SELECT u.id, u.name, du.department_id FROM users u JOIN department_users du ON u.id=du.user_id WHERE u.role='agent' AND u.status='active' ORDER BY u.name")->fetchAll();
+    foreach ($agents_raw as $a) {
+        if (!isset($agents[$a['id']])) $agents[$a['id']] = ['id'=>$a['id'],'name'=>$a['name'],'depts'=>[]];
+        $agents[$a['id']]['depts'][] = $a['department_id'];
+    }
+    $agents = array_values($agents);
+} elseif (is_supervisor()) {
+    $sup_depts = array_column(get_user_departments($uid), 'id');
+    if ($sup_depts) {
+        $in = implode(',', array_map('intval', $sup_depts));
+        $agents_raw = db()->query("SELECT u.id, u.name, du.department_id FROM users u JOIN department_users du ON u.id=du.user_id WHERE u.role='agent' AND u.status='active' AND du.department_id IN($in) ORDER BY u.name")->fetchAll();
+        foreach ($agents_raw as $a) {
+            if (!isset($agents[$a['id']])) $agents[$a['id']] = ['id'=>$a['id'],'name'=>$a['name'],'depts'=>[]];
+            $agents[$a['id']]['depts'][] = $a['department_id'];
+        }
+        $agents = array_values($agents);
+    }
+}
 
 $page_title = t('new_ticket');
 include ROOT . '/templates/header.php';
@@ -163,7 +192,7 @@ include ROOT . '/templates/header.php';
           <div class="mb-3">
             <label class="form-label small fw-semibold"><?= t('department') ?></label>
             <select name="department_id" form="ticketForm" class="form-select form-select-sm" id="deptSelect"
-                    onchange="loadCategories(this.value)">
+                    onchange="loadCategories(this.value); loadAgents(this.value)">
               <option value=""><?= t('select') ?>...</option>
               <?php foreach ($departments as $d): ?>
                 <option value="<?= $d['id'] ?>" <?= ($_POST['department_id']??'')==$d['id']?'selected':'' ?>><?= h($d['name']) ?></option>
@@ -190,15 +219,32 @@ include ROOT . '/templates/header.php';
               <?php endforeach; ?>
             </select>
           </div>
-          <?php if (is_agent() && $agents): ?>
+          <?php if ($agents): ?>
           <div class="mb-3">
             <label class="form-label small fw-semibold"><?= t('assign_agent') ?></label>
-            <select name="assigned_to" form="ticketForm" class="form-select form-select-sm">
+            <select name="assigned_to" form="ticketForm" class="form-select form-select-sm" id="agentSelect">
               <option value=""><?= t('none') ?> (auto)</option>
               <?php foreach ($agents as $a): ?>
-                <option value="<?= $a['id'] ?>" <?= ($_POST['assigned_to']??'')==$a['id']?'selected':'' ?>><?= h($a['name']) ?></option>
+                <option value="<?= $a['id'] ?>"
+                        data-depts="<?= implode(',', $a['depts']) ?>"
+                        <?= ($_POST['assigned_to']??'')==$a['id']?'selected':'' ?>>
+                  <?= h($a['name']) ?>
+                </option>
               <?php endforeach; ?>
             </select>
+          </div>
+          <?php endif; ?>
+          <?php if (is_supervisor()): ?>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">
+              <i class="bi bi-clock me-1 text-warning"></i>Fecha límite de resolución
+              <small class="text-muted fw-normal">(opcional)</small>
+            </label>
+            <input type="datetime-local" name="resolution_due" form="ticketForm"
+                   class="form-control form-control-sm"
+                   min="<?= date('Y-m-d\TH:i') ?>"
+                   value="<?= h($_POST['resolution_due']??'') ?>">
+            <small class="text-muted">Sobreescribe el tiempo SLA calculado por prioridad.</small>
           </div>
           <?php endif; ?>
       </div>
@@ -220,6 +266,17 @@ function loadCategories(deptId) {
   Array.from(sel.options).forEach(opt => {
     if (!opt.value) return;
     opt.hidden = deptId && opt.dataset.dept && opt.dataset.dept !== deptId;
+  });
+}
+
+function loadAgents(deptId) {
+  const sel = document.getElementById('agentSelect');
+  if (!sel) return;
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return;
+    const depts = opt.dataset.depts ? opt.dataset.depts.split(',') : [];
+    opt.hidden = deptId ? !depts.includes(String(deptId)) : false;
+    if (opt.hidden && opt.selected) sel.value = '';
   });
 }
 
