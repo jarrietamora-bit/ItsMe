@@ -185,14 +185,16 @@ foreach (['_db_host','_db_name','_db_user','_db_pass','_db_port'] as $k) {
     elseif (isset($_POST[$k])) $carried[$k] = $_POST[$k];
 }
 
-// Requirements check
+// Requirements check (required = blocks install, optional = warning only)
 $req = [
     'PHP >= 7.4'                       => version_compare(PHP_VERSION, '7.4.0', '>='),
     'PDO MySQL'                        => extension_loaded('pdo_mysql'),
     'OpenSSL'                          => extension_loaded('openssl'),
-    'Fileinfo'                         => extension_loaded('fileinfo'),
     'Directorio uploads/ escribible'   => is_writable($root . '/uploads') || @mkdir($root . '/uploads', 0755, true),
     'Directorio config/ escribible'    => is_writable($root . '/config'),
+];
+$req_optional = [
+    'Fileinfo (recomendado)' => extension_loaded('fileinfo'),
 ];
 $all_ok = !in_array(false, $req, true);
 ?>
@@ -252,6 +254,13 @@ $all_ok = !in_array(false, $req, true);
         <i class="bi <?= $ok ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?>"></i>
         <span><?= htmlspecialchars($label) ?></span>
         <span class="ms-auto badge <?= $ok ? 'bg-success' : 'bg-danger' ?>"><?= $ok ? 'OK' : 'Fallo' ?></span>
+      </div>
+    <?php endforeach; ?>
+    <?php foreach ($req_optional as $label => $ok): ?>
+      <div class="req-item">
+        <i class="bi <?= $ok ? 'bi-check-circle-fill text-success' : 'bi-exclamation-circle-fill text-warning' ?>"></i>
+        <span><?= htmlspecialchars($label) ?></span>
+        <span class="ms-auto badge <?= $ok ? 'bg-success' : 'bg-warning text-dark' ?>"><?= $ok ? 'OK' : 'Opcional' ?></span>
       </div>
     <?php endforeach; ?>
     <form method="post" class="mt-4">
