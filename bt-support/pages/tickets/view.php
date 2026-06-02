@@ -6,6 +6,7 @@ $user   = current_user();
 $uid    = $user['id'];
 $role   = current_role();
 $t_id   = (int)($_GET['id'] ?? 0);
+$lang   = current_lang();
 
 $st = db()->prepare("SELECT t.*, u.name as client_name, u.email as client_email, u.phone as client_phone,
        p.name_es as priority_name, p.name_en as priority_name_en, p.color as priority_color,
@@ -67,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
                     $st_client->execute([$ticket['created_by']]);
                     $client = $st_client->fetch();
                     if ($client) {
-                        send_notification($client['id'],'ticket_reply',"Nueva respuesta en #{$ticket['ticket_number']}",$message,base_url('tickets/view?id='.$t_id));
+                        send_notification($client['id'],'ticket_reply',sprintf(t('new_reply_notif'),$ticket['ticket_number']),$message,base_url('tickets/view?id='.$t_id));
                         try { mailer()->sendTicketReply($ticket, $client, ['message'=>$message]); } catch(\Throwable $e){}
                     }
                 } elseif ($role === 'client' && $ticket['assigned_to']) {
@@ -76,8 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
                     $st_agent->execute([$ticket['assigned_to']]);
                     $agent = $st_agent->fetch();
                     if ($agent) {
-                        send_notification($agent['id'],'ticket_reply',"Cliente respondió #{$ticket['ticket_number']}",$message,base_url('tickets/view?id='.$t_id));
-                        try { mailer()->send($agent['email'],"Cliente respondió: #{$ticket['ticket_number']}","<p>{$message}</p>",$agent['name']); } catch(\Throwable $e){}
+                        send_notification($agent['id'],'ticket_reply',sprintf(t('client_replied_notif'),$ticket['ticket_number']),$message,base_url('tickets/view?id='.$t_id));
+                        try { mailer()->send($agent['email'],sprintf(t('client_replied_notif'),$ticket['ticket_number']),"<p>{$message}</p>",$agent['name']); } catch(\Throwable $e){}
                     }
                 }
             }
@@ -91,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $new_agent = (int)($_POST['assign_to'] ?? 0) ?: null;
         db()->prepare("UPDATE tickets SET assigned_to=?, updated_at=NOW() WHERE id=?")->execute([$new_agent, $t_id]);
         if ($new_agent) {
-            send_notification($new_agent,'assigned',"Ticket asignado: #{$ticket['ticket_number']}","",base_url('tickets/view?id='.$t_id));
+            send_notification($new_agent,'assigned',sprintf(t('ticket_assigned_notif'),$ticket['ticket_number']),"",base_url('tickets/view?id='.$t_id));
         }
         flash('success', t('ticket_updated'));
         log_activity('assign_ticket','ticket',$t_id);
@@ -112,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $st_rclient->execute([$ticket['created_by']]);
         $client = $st_rclient->fetch();
         if ($client) {
-            send_notification($client['id'],'resolved',"Ticket #{$ticket['ticket_number']} resuelto",'',base_url('tickets/view?id='.$t_id));
+            send_notification($client['id'],'resolved',sprintf(t('ticket_resolved_notif'),$ticket['ticket_number']),'',base_url('tickets/view?id='.$t_id));
             try { mailer()->sendTicketResolved($ticket, $client); } catch(\Throwable $e){}
         }
         flash('success', t('ticket_resolved'));
@@ -134,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         if ($rating >= 1 && $rating <= 5) {
             db()->prepare("INSERT INTO ratings (ticket_id,user_id,rating,comment) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE rating=VALUES(rating),comment=VALUES(comment)")
                ->execute([$t_id,$uid,$rating,$comment]);
-            flash('success','¡Gracias por tu calificación!');
+            flash('success', t('thank_you_rating'));
         }
     }
 
@@ -412,7 +413,7 @@ include ROOT . '/templates/header.php';
             <?php endfor; ?>
           </div>
           <input type="hidden" name="rating" id="ratingVal" value="">
-          <input type="text" name="rating_comment" class="form-control form-control-sm mb-2" placeholder="Comentario (opcional)">
+          <input type="text" name="rating_comment" class="form-control form-control-sm mb-2" placeholder="<?= t('comment_optional') ?>">
           <button type="submit" class="btn btn-warning btn-sm"><?= t('submit') ?></button>
         </form>
         <?php endif; ?>
@@ -604,7 +605,7 @@ include ROOT . '/templates/header.php';
             <select name="priority_id" class="form-select">
               <option value=""><?= t('none') ?></option>
               <?php foreach ($priorities_list as $pr): ?>
-                <option value="<?= $pr['id'] ?>" <?= $pr['id']==$ticket['priority_id']?'selected':'' ?>><?= h($pr['name_es']) ?></option>
+                <option value="<?= $pr['id'] ?>" <?= $pr['id']==$ticket['priority_id']?'selected':'' ?>><?= h($pr['name_'.$lang] ?? $pr['name_es']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>

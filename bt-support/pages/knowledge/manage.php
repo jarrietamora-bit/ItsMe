@@ -112,7 +112,7 @@ include ROOT . '/templates/header.php';
 <div class="card border-0 shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0 small">
-      <thead class="table-light"><tr><th>Título</th><th>Categoría</th><th><?= t('status') ?></th><th><?= t('views') ?></th><th>Útil</th><th><?= t('actions') ?></th></tr></thead>
+      <thead class="table-light"><tr><th><?= t('title') ?></th><th><?= t('category') ?></th><th><?= t('status') ?></th><th><?= t('views') ?></th><th><?= t('helpful') ?></th><th><?= t('actions') ?></th></tr></thead>
       <tbody>
         <?php if (empty($articles)): ?><tr><td colspan="6" class="text-center text-muted py-4"><?= t('no_results') ?></td></tr>
         <?php else: foreach ($articles as $a): ?>

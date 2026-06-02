@@ -99,7 +99,7 @@ include ROOT . '/templates/header.php';
         </div>
         <div class="col-md-6">
           <label class="form-label"><?= t('new_password') ?> <small class="text-muted">(<?= t('optional') ?>)</small></label>
-          <input type="password" name="new_password" class="form-control" minlength="8" placeholder="Dejar vacío para no cambiar">
+          <input type="password" name="new_password" class="form-control" minlength="8" placeholder="<?= t('leave_empty_no_change') ?>">
         </div>
         <div class="col-md-6">
           <label class="form-label"><?= t('avatar') ?></label>
@@ -131,7 +131,7 @@ include ROOT . '/templates/header.php';
           </div>
         </div>
         <div class="col-12" id="supDeptSection" style="display:none">
-          <label class="form-label"><?= t('set_supervisor') ?> — Departamento principal</label>
+          <label class="form-label"><?= t('set_supervisor') ?> — <?= t('main_department') ?></label>
           <select name="supervisor_dept" class="form-select">
             <option value=""><?= t('select') ?>...</option>
             <?php foreach ($departments as $d): ?>

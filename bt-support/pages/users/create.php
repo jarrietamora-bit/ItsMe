@@ -80,7 +80,7 @@ include ROOT . '/templates/header.php';
               <input type="text" name="phone" class="form-control" value="<?= h($_POST['phone']??'') ?>">
             </div>
             <div class="col-md-6">
-              <label class="form-label"><?= t('password') ?> * (mín. 8)</label>
+              <label class="form-label"><?= t('password') ?> * (min. 8)</label>
               <input type="password" name="password" class="form-control" minlength="8" required>
             </div>
             <div class="col-md-6">
@@ -131,7 +131,7 @@ include ROOT . '/templates/header.php';
                   <option value="<?= $d['id'] ?>"><?= h($d['name']) ?></option>
                 <?php endforeach; ?>
               </select>
-              <small class="text-muted">Elige el departamento principal del cual será supervisor.</small>
+              <small class="text-muted"><?= t('choose_supervisor_dept') ?></small>
             </div>
             <?php endif; ?>
           </div>
@@ -147,9 +147,9 @@ include ROOT . '/templates/header.php';
   <!-- Role info -->
   <div class="col-lg-5">
     <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white"><strong>Permisos por rol</strong></div>
+      <div class="card-header bg-white"><strong><?= t('perms_by_role') ?></strong></div>
       <div class="card-body small">
-        <?php foreach (['super_admin'=>['#dc3545','Control total del sistema'],'admin'=>['#fd7e14','Gestión global, usuarios, reportes'],'supervisor'=>['#0dcaf0','Ve y gestiona tickets de su departamento, reasigna agentes'],'agent'=>['#0d6efd','Responde tickets asignados a él'],'client'=>['#6c757d','Crea y ve sus propios tickets']] as $r=>[$color,$desc]): ?>
+        <?php foreach (['super_admin'=>['#dc3545',t('role_desc_super_admin')],'admin'=>['#fd7e14',t('role_desc_admin')],'supervisor'=>['#0dcaf0',t('role_desc_supervisor')],'agent'=>['#0d6efd',t('role_desc_agent')],'client'=>['#6c757d',t('role_desc_client')]] as $r=>[$color,$desc]): ?>
         <div class="d-flex gap-2 mb-2">
           <span class="badge" style="background:<?= $color ?>"><?= role_label($r) ?></span>
           <span class="text-muted"><?= $desc ?></span>

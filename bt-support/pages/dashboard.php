@@ -5,6 +5,7 @@ require_login();
 $user = current_user();
 $role = current_role();
 $uid  = $user['id'];
+$lang = in_array(current_lang(), ['es','en']) ? current_lang() : 'es';
 
 // Stats based on role
 if (in_array($role, ['super_admin','admin'])) {
@@ -32,7 +33,7 @@ if (in_array($role, ['super_admin','admin'])) {
 
     // Recent tickets
     $recent = db()->query("
-        SELECT t.*, u.name as client_name, p.name_es as priority_name, p.color as priority_color,
+        SELECT t.*, u.name as client_name, p.name_{$lang} as priority_name, p.color as priority_color,
                d.name as dept_name, a.name as agent_name
         FROM tickets t
         JOIN users u ON t.created_by=u.id
@@ -72,7 +73,7 @@ if (in_array($role, ['super_admin','admin'])) {
     ];
 
     $st_recent = db()->prepare("
-        SELECT t.*, u.name as client_name, p.name_es as priority_name, p.color as priority_color,
+        SELECT t.*, u.name as client_name, p.name_{$lang} as priority_name, p.color as priority_color,
                d.name as dept_name, a.name as agent_name
         FROM tickets t JOIN users u ON t.created_by=u.id
         LEFT JOIN priorities p ON t.priority_id=p.id
@@ -114,7 +115,7 @@ if (in_array($role, ['super_admin','admin'])) {
         'total'       => (int)$st_tot->fetchColumn(),
     ];
     $st_rec = db()->prepare("
-        SELECT t.*, u.name as client_name, p.name_es as priority_name, p.color as priority_color, d.name as dept_name
+        SELECT t.*, u.name as client_name, p.name_{$lang} as priority_name, p.color as priority_color, d.name as dept_name
         FROM tickets t JOIN users u ON t.created_by=u.id
         LEFT JOIN priorities p ON t.priority_id=p.id
         LEFT JOIN departments d ON t.department_id=d.id
@@ -142,7 +143,7 @@ if (in_array($role, ['super_admin','admin'])) {
         'total'       => (int)$st_ct->fetchColumn(),
     ];
     $st_crec = db()->prepare("
-        SELECT t.*, p.name_es as priority_name, p.color as priority_color, d.name as dept_name, a.name as agent_name
+        SELECT t.*, p.name_{$lang} as priority_name, p.color as priority_color, d.name as dept_name, a.name as agent_name
         FROM tickets t
         LEFT JOIN priorities p ON t.priority_id=p.id
         LEFT JOIN departments d ON t.department_id=d.id
@@ -180,7 +181,7 @@ include ROOT . '/templates/header.php';
   ];
   if (is_admin()) {
       $cards[] = ['unassigned','bi-person-x','secondary', t('unassigned_tickets')];
-      $cards[] = ['total',     'bi-collection','info',    'Total'];
+      $cards[] = ['total',     'bi-collection','info',    t('total')];
   }
   foreach ($cards as [$key,$icon,$color,$label]):
   ?>

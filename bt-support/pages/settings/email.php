@@ -66,8 +66,8 @@ include ROOT . '/templates/header.php';
           <div class="mb-3">
             <label class="form-label"><?= t('mail_method') ?></label>
             <select name="mail_method" class="form-select" id="mailMethod" onchange="toggleSmtp()">
-              <option value="php" <?= ($cfg['mail_method']??'php')==='php'?'selected':'' ?>>PHP mail() — Servidor de hosting</option>
-              <option value="smtp" <?= ($cfg['mail_method']??'')==='smtp'?'selected':'' ?>>SMTP personalizado</option>
+              <option value="php" <?= ($cfg['mail_method']??'php')==='php'?'selected':'' ?>><?= t('smtp_method_php') ?></option>
+              <option value="smtp" <?= ($cfg['mail_method']??'')==='smtp'?'selected':'' ?>><?= t('smtp_method_smtp') ?></option>
             </select>
           </div>
           <div id="smtpFields">
@@ -99,9 +99,9 @@ include ROOT . '/templates/header.php';
               <div class="col-md-6">
                 <label class="form-label"><?= t('smtp_secure') ?></label>
                 <select name="smtp_secure" class="form-select">
-                  <option value="tls" <?= ($cfg['smtp_secure']??'tls')==='tls'?'selected':'' ?>>TLS (puerto 587)</option>
-                  <option value="ssl" <?= ($cfg['smtp_secure']??'')==='ssl'?'selected':'' ?>>SSL (puerto 465)</option>
-                  <option value=""   <?= ($cfg['smtp_secure']??'')===''?'selected':'' ?>>Ninguno (puerto 25)</option>
+                  <option value="tls" <?= ($cfg['smtp_secure']??'tls')==='tls'?'selected':'' ?>><?= t('smtp_tls') ?></option>
+                  <option value="ssl" <?= ($cfg['smtp_secure']??'')==='ssl'?'selected':'' ?>><?= t('smtp_ssl') ?></option>
+                  <option value=""   <?= ($cfg['smtp_secure']??'')===''?'selected':'' ?>><?= t('smtp_none') ?></option>
                 </select>
               </div>
             </div>
@@ -141,7 +141,7 @@ include ROOT . '/templates/header.php';
         </table>
         <div class="alert alert-info py-2 small">
           <i class="bi bi-info-circle me-1"></i>
-          Para Gmail necesita <strong>contraseña de app</strong> (activar 2FA primero).
+          <?= t('gmail_app_password_hint') ?>
         </div>
       </div>
     </div>
@@ -159,7 +159,7 @@ function sendTestEmail() {
   const btn = document.getElementById('btnTestEmail');
   const result = document.getElementById('testEmailResult');
   const to = document.getElementById('testEmailTo').value.trim();
-  if (!to) { alert('Ingrese un correo destino'); return; }
+  if (!to) { alert('<?= t('enter_email_required') ?>'); return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span><?= t('sending') ?>';
@@ -180,7 +180,7 @@ function sendTestEmail() {
     })
     .catch(() => {
       result.style.display = 'block';
-      result.innerHTML = '<div class="alert alert-danger py-2 mb-0 small"><i class="bi bi-x-circle me-1"></i>Error de conexión al procesar la solicitud.</div>';
+      result.innerHTML = '<div class="alert alert-danger py-2 mb-0 small"><i class="bi bi-x-circle me-1"></i><?= t('connection_error') ?></div>';
     })
     .finally(() => {
       btn.disabled = false;

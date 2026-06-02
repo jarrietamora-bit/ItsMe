@@ -36,7 +36,11 @@ if (is_logged_in()) {
 // Language switcher
 if (isset($_GET['lang'])) {
     switch_lang($_GET['lang']);
-    $back = $_SERVER['HTTP_REFERER'] ?? base_url();
+    $back = $_SERVER['HTTP_REFERER'] ?? '';
+    $base = base_url();
+    if (!$back || strncmp($back, $base, strlen($base)) !== 0) {
+        $back = $base;
+    }
     redirect($back);
 }
 

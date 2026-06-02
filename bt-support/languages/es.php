@@ -65,6 +65,11 @@ return [
     'assign_me'         => 'Asignarme',
     'views_label'       => 'vistas',
     'perms_by_role'     => 'Permisos por rol',
+    'title'             => 'Título',
+    'helpful'           => 'Útil',
+    'comment_optional'  => 'Comentario (opcional)',
+    'enter_email_required' => 'Ingrese un correo destino.',
+    'connection_error'  => 'Error de conexión al procesar la solicitud.',
 
     // Validation / error messages
     'email_invalid'          => 'Email inválido.',
@@ -351,6 +356,43 @@ return [
     'notifications'     => 'Notificaciones',
     'mark_all_read'     => 'Marcar todo como leído',
     'no_notifications'  => 'No hay notificaciones nuevas.',
+
+    // Tags
+    'tag_deleted'           => 'Etiqueta eliminada.',
+    'new_tag'               => 'Nueva etiqueta',
+    'hex_color_hint'        => 'Código hex del color (ej. #6c757d)',
+    'toggle_status'         => 'Cambiar activo/inactivo',
+
+    // User role descriptions
+    'role_desc_super_admin' => 'Control total del sistema',
+    'role_desc_admin'       => 'Gestión global, usuarios, reportes',
+    'role_desc_supervisor'  => 'Ve y gestiona tickets de su dpto., reasigna agentes',
+    'role_desc_agent'       => 'Responde tickets asignados a él',
+    'role_desc_client'      => 'Crea y ve sus propios tickets',
+    'choose_supervisor_dept'=> 'Elige el departamento principal del cual será supervisor.',
+
+    // SLA breach notifications
+    'sla_breach_notif_title'    => '⚠️ SLA vencido: #%s',
+    'sla_breach_email_subject'  => '⚠️ SLA vencido — Ticket #%s',
+    'sla_breach_email_body_sup' => '<h3>SLA Vencido</h3><p>El ticket <strong>#%s</strong>: <em>%s</em> ha superado su tiempo de resolución SLA y requiere atención inmediata.</p><p><a href="%s">Ver ticket</a></p>',
+    'sla_breach_email_body_adm' => '<h3>SLA Vencido</h3><p>El ticket <strong>#%s</strong>: <em>%s</em> ha superado su tiempo de resolución SLA.</p><p><a href="%s">Ver ticket</a></p>',
+
+    // In-app notification strings
+    'ticket_assigned_notif' => 'Ticket asignado: #%s',
+    'new_reply_notif'       => 'Nueva respuesta en #%s',
+    'client_replied_notif'  => 'Cliente respondió a #%s',
+    'ticket_resolved_notif' => 'Ticket #%s resuelto',
+
+    // Email templates editor
+    'email_templates_vars'  => 'Variables disponibles:',
+
+    // Email settings - method/security options
+    'smtp_method_php'        => 'PHP mail() — Servidor de hosting',
+    'smtp_method_smtp'       => 'SMTP personalizado',
+    'smtp_tls'               => 'TLS (puerto 587)',
+    'smtp_ssl'               => 'SSL (puerto 465)',
+    'smtp_none'              => 'Ninguno (puerto 25)',
+    'gmail_app_password_hint'=> 'Para Gmail necesita contraseña de app (activar 2FA primero).',
 
     // Canned Responses
     'canned_responses'  => 'Respuestas predefinidas',

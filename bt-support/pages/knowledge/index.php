@@ -61,7 +61,7 @@ if (!is_logged_in()) {
   <form method="get" class="d-flex gap-2">
     <div class="input-group">
       <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input type="text" name="q" class="form-control" placeholder="<?= t('search') ?> en la base de conocimiento..." value="<?= h($q) ?>">
+      <input type="text" name="q" class="form-control" placeholder="<?= t('kb_search_placeholder') ?>" value="<?= h($q) ?>">
     </div>
     <button type="submit" class="btn btn-primary"><?= t('search') ?></button>
     <?php if ($q): ?><a href="<?= base_url('knowledge') ?>" class="btn btn-outline-secondary">✕</a><?php endif; ?>

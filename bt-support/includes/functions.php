@@ -66,6 +66,7 @@ function generate_ticket_number(): string {
 
 function time_ago(string $datetime): string {
     $diff = time() - strtotime($datetime);
+    if ($diff < 0) return date('d/m/Y', strtotime($datetime));
     if ($diff < 60)      return t('just_now');
     if ($diff < 3600)    return floor($diff/60)   . ' ' . t('minutes_ago');
     if ($diff < 86400)   return floor($diff/3600)  . ' ' . t('hours_ago');
@@ -161,7 +162,7 @@ function log_activity(string $action, string $entity_type = '', int $entity_id =
 function paginate(int $total, int $per_page, int $current_page): array {
     if ($per_page <= 0) $per_page = 25;
     $total_pages = (int)ceil($total / $per_page);
-    $offset = ($current_page - 1) * $per_page;
+    $offset = max(0, ($current_page - 1) * $per_page);
     return ['total' => $total, 'per_page' => $per_page, 'current' => $current_page, 'total_pages' => $total_pages, 'offset' => $offset];
 }
 
@@ -185,6 +186,16 @@ function get_user_departments(int $user_id): array {
     $st = db()->prepare("SELECT d.* FROM departments d JOIN department_users du ON d.id = du.department_id WHERE du.user_id = ? AND d.status = 'active'");
     $st->execute([$user_id]);
     return $st->fetchAll();
+}
+
+function _t_lang(string $key, string $lang, ...$args): string {
+    static $cache = [];
+    if (!isset($cache[$lang])) {
+        $file = __DIR__ . "/../languages/{$lang}.php";
+        $cache[$lang] = file_exists($file) ? (require $file) : [];
+    }
+    $str = $cache[$lang][$key] ?? $key;
+    return $args ? vsprintf($str, $args) : $str;
 }
 
 function check_sla_breach(): void {
@@ -214,14 +225,14 @@ function check_sla_breach(): void {
         $url  = base_url('tickets/view?id=' . $ticket['id']);
         $num  = $ticket['ticket_number'];
         $subj = $ticket['subject'];
-        $title = "⚠️ SLA vencido: #{$num}";
+        $title = sprintf(t('sla_breach_notif_title'), $num);
 
         $notified_ids = [];
 
         // Notify supervisors of the ticket's department
         if ($notify_whom !== 'admin' && $ticket['department_id']) {
             $sup_st = db()->prepare(
-                "SELECT u.id, u.email, u.name FROM users u
+                "SELECT u.id, u.email, u.name, u.language FROM users u
                  JOIN department_users du ON u.id = du.user_id
                  WHERE du.department_id = ? AND du.is_supervisor = 1 AND u.status = 'active'"
             );
@@ -229,11 +240,12 @@ function check_sla_breach(): void {
             foreach ($sup_st->fetchAll() as $sup) {
                 send_notification($sup['id'], 'sla_breach', $title, $subj, $url);
                 $notified_ids[] = $sup['id'];
+                $lang = $sup['language'] ?? 'es';
                 try {
                     mailer()->send(
                         $sup['email'],
-                        "⚠️ SLA vencido — Ticket #{$num}",
-                        "<h3>SLA Vencido</h3><p>El ticket <strong>#{$num}</strong>: <em>" . htmlspecialchars($subj) . "</em> ha superado su tiempo de resolución SLA y requiere atención inmediata.</p><p><a href=\"{$url}\">Ver ticket</a></p>",
+                        _t_lang('sla_breach_email_subject', $lang, $num),
+                        _t_lang('sla_breach_email_body_sup', $lang, $num, htmlspecialchars($subj), $url),
                         $sup['name']
                     );
                 } catch (\Throwable $e) {}
@@ -242,15 +254,16 @@ function check_sla_breach(): void {
 
         // Notify admins
         if ($notify_whom !== 'supervisor') {
-            $adm_st = db()->query("SELECT id, email, name FROM users WHERE role IN ('super_admin','admin') AND status='active'");
+            $adm_st = db()->query("SELECT id, email, name, language FROM users WHERE role IN ('super_admin','admin') AND status='active'");
             foreach ($adm_st->fetchAll() as $adm) {
                 if (in_array($adm['id'], $notified_ids, true)) continue;
                 send_notification($adm['id'], 'sla_breach', $title, $subj, $url);
+                $lang = $adm['language'] ?? 'es';
                 try {
                     mailer()->send(
                         $adm['email'],
-                        "⚠️ SLA vencido — Ticket #{$num}",
-                        "<h3>SLA Vencido</h3><p>El ticket <strong>#{$num}</strong>: <em>" . htmlspecialchars($subj) . "</em> ha superado su tiempo de resolución SLA.</p><p><a href=\"{$url}\">Ver ticket</a></p>",
+                        _t_lang('sla_breach_email_subject', $lang, $num),
+                        _t_lang('sla_breach_email_body_adm', $lang, $num, htmlspecialchars($subj), $url),
                         $adm['name']
                     );
                 } catch (\Throwable $e) {}

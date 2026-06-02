@@ -56,7 +56,7 @@ $st_by_dept->execute(array_merge([$from, $to], $dept_params));
 $by_dept = $st_by_dept->fetchAll();
 
 // By category
-$st_by_cat = db()->prepare("SELECT COALESCE(c.name,'Sin categoría') as name, COUNT(*) as total FROM tickets t LEFT JOIN categories c ON t.category_id=c.id WHERE DATE(t.created_at) BETWEEN ? AND ? {$dept_filter} GROUP BY t.category_id ORDER BY total DESC LIMIT 10");
+$st_by_cat = db()->prepare("SELECT c.name, COUNT(*) as total FROM tickets t LEFT JOIN categories c ON t.category_id=c.id WHERE DATE(t.created_at) BETWEEN ? AND ? {$dept_filter} GROUP BY t.category_id ORDER BY total DESC LIMIT 10");
 $st_by_cat->execute(array_merge([$from, $to], $dept_params));
 $by_cat = $st_by_cat->fetchAll();
 
@@ -73,8 +73,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM
 
     // Section 1: Summary
-    fputcsv($out, ['RESUMEN']);
-    fputcsv($out, ['Total','Abiertos','Resueltos','Cerrados','SLA Incumplido','Resolución prom.']);
+    fputcsv($out, [strtoupper(t('report_overview'))]);
+    fputcsv($out, [t('total'),t('status_open'),t('status_resolved'),t('status_closed'),t('sla_breached'),t('avg_resolution_time')]);
     fputcsv($out, [
         $stats['total'],
         $stats['open_count'],
@@ -88,8 +88,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fputcsv($out, []);
 
     // Section 2: By agent
-    fputcsv($out, ['POR AGENTE']);
-    fputcsv($out, ['Agente','Total','Resueltos','Cerrados','SLA Incumplido','Resp. prom. (min)']);
+    fputcsv($out, [strtoupper(t('report_by_agent'))]);
+    fputcsv($out, [t('agent'),t('total'),t('status_resolved'),t('status_closed'),t('sla_breached'),t('avg_response').' (min)']);
     foreach ($by_agent as $a) {
         fputcsv($out, [$a['name'],$a['total'],$a['resolved'],$a['closed'],$a['breached'],round($a['avg_resp']??0)]);
     }
@@ -98,8 +98,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fputcsv($out, []);
 
     // Section 3: By department
-    fputcsv($out, ['POR DEPARTAMENTO']);
-    fputcsv($out, ['Departamento','Total','Resueltos']);
+    fputcsv($out, [strtoupper(t('report_by_dept'))]);
+    fputcsv($out, [t('department'),t('total'),t('status_resolved')]);
     foreach ($by_dept as $d) {
         fputcsv($out, [$d['name'],$d['total'],$d['resolved']]);
     }
@@ -117,7 +117,7 @@ function fmt_time($min): string {
     $min = (int)$min;
     if ($min < 60) return "{$min} min";
     if ($min < 1440) return round($min/60,1) . " h";
-    return round($min/1440,1) . " días";
+    return round($min/1440,1) . " " . t('days_unit');
 }
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -263,7 +263,7 @@ function fmt_time($min): string {
           <thead class="table-light"><tr><th><?= t('category') ?></th><th><?= t('tickets') ?></th></tr></thead>
           <tbody>
             <?php foreach ($by_cat as $c): ?>
-            <tr><td><?= h($c['name']) ?></td><td><span class="badge bg-primary"><?= $c['total'] ?></span></td></tr>
+            <tr><td><?= h($c['name'] ?: t('no_category')) ?></td><td><span class="badge bg-primary"><?= $c['total'] ?></span></td></tr>
             <?php endforeach; ?>
           </tbody>
         </table>

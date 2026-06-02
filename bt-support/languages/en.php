@@ -65,6 +65,11 @@ return [
     'assign_me'         => 'Assign to me',
     'views_label'       => 'views',
     'perms_by_role'     => 'Permissions by role',
+    'title'             => 'Title',
+    'helpful'           => 'Helpful',
+    'comment_optional'  => 'Comment (optional)',
+    'enter_email_required' => 'Please enter a destination email.',
+    'connection_error'  => 'Connection error processing request.',
 
     // Validation / error messages
     'email_invalid'          => 'Invalid email address.',
@@ -351,6 +356,43 @@ return [
     'notifications'     => 'Notifications',
     'mark_all_read'     => 'Mark all as read',
     'no_notifications'  => 'No new notifications.',
+
+    // Tags
+    'tag_deleted'           => 'Tag deleted.',
+    'new_tag'               => 'New tag',
+    'hex_color_hint'        => 'Hex color code (e.g. #6c757d)',
+    'toggle_status'         => 'Toggle active/inactive',
+
+    // User role descriptions
+    'role_desc_super_admin' => 'Full system control',
+    'role_desc_admin'       => 'Global management, users, reports',
+    'role_desc_supervisor'  => 'Views and manages dept tickets, reassigns agents',
+    'role_desc_agent'       => 'Handles assigned tickets',
+    'role_desc_client'      => 'Creates and views own tickets',
+    'choose_supervisor_dept'=> 'Choose the main department they will supervise.',
+
+    // SLA breach notifications
+    'sla_breach_notif_title'    => '⚠️ SLA overdue: #%s',
+    'sla_breach_email_subject'  => '⚠️ SLA overdue — Ticket #%s',
+    'sla_breach_email_body_sup' => '<h3>SLA Overdue</h3><p>Ticket <strong>#%s</strong>: <em>%s</em> has exceeded its SLA resolution time and requires immediate attention.</p><p><a href="%s">View ticket</a></p>',
+    'sla_breach_email_body_adm' => '<h3>SLA Overdue</h3><p>Ticket <strong>#%s</strong>: <em>%s</em> has exceeded its SLA resolution time.</p><p><a href="%s">View ticket</a></p>',
+
+    // In-app notification strings
+    'ticket_assigned_notif' => 'Ticket assigned: #%s',
+    'new_reply_notif'       => 'New reply on #%s',
+    'client_replied_notif'  => 'Client replied to #%s',
+    'ticket_resolved_notif' => 'Ticket #%s resolved',
+
+    // Email templates editor
+    'email_templates_vars'  => 'Available variables:',
+
+    // Email settings - method/security options
+    'smtp_method_php'        => 'PHP mail() — Hosting server',
+    'smtp_method_smtp'       => 'Custom SMTP',
+    'smtp_tls'               => 'TLS (port 587)',
+    'smtp_ssl'               => 'SSL (port 465)',
+    'smtp_none'              => 'None (port 25)',
+    'gmail_app_password_hint'=> 'For Gmail you need an App Password (enable 2FA first).',
 
     // Canned Responses
     'canned_responses'  => 'Canned responses',

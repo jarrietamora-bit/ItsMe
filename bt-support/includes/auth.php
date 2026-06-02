@@ -16,6 +16,26 @@ function auth_start(): void {
         ]);
         session_start();
     }
+    // Remember-me auto-login
+    if (!isset($_SESSION['uid']) && isset($_COOKIE['remember_token'])) {
+        $token_hash = hash('sha256', $_COOKIE['remember_token']);
+        $st_rm = db()->prepare("SELECT * FROM users WHERE remember_token = ? AND status = 'active'");
+        $st_rm->execute([$token_hash]);
+        $rm_user = $st_rm->fetch();
+        $secure  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        if ($rm_user) {
+            $new_token = bin2hex(random_bytes(32));
+            setcookie('remember_token', $new_token, time() + 30 * 86400, '/', '', $secure, true);
+            db()->prepare("UPDATE users SET remember_token = ? WHERE id = ?")->execute([hash('sha256', $new_token), $rm_user['id']]);
+            session_regenerate_id(true);
+            $_SESSION['uid']  = $rm_user['id'];
+            $_SESSION['role'] = $rm_user['role'];
+            $_SESSION['lang'] = $rm_user['language'];
+            $_SESSION['last_activity'] = time();
+        } else {
+            setcookie('remember_token', '', time() - 3600, '/', '', $secure, true);
+        }
+    }
     // Check session timeout
     $cfg = require __DIR__ . '/../config/config.php';
     $timeout = ($cfg['session_timeout'] ?? 120) * 60;
@@ -114,7 +134,8 @@ function login_user(string $email, string $password, bool $remember = false): bo
 function logout_user(): void {
     if (isset($_COOKIE['remember_token'])) {
         db()->prepare("UPDATE users SET remember_token = NULL WHERE id = ?")->execute([$_SESSION['uid'] ?? 0]);
-        setcookie('remember_token', '', time() - 3600, '/');
+        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        setcookie('remember_token', '', time() - 3600, '/', '', $secure, true);
     }
     session_unset();
     session_destroy();

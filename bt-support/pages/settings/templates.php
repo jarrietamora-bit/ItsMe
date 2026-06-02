@@ -48,7 +48,7 @@ include ROOT . '/templates/header.php';
 ?>
 <h4 class="fw-bold mb-4"><?= t('email_templates') ?></h4>
 <div class="alert alert-info small">
-  <strong>Variables disponibles:</strong> <code>{{ticket_number}}</code>, <code>{{subject}}</code>, <code>{{name}}</code>, <code>{{reply_message}}</code>, <code>{{ticket_url}}</code>, <code>{{reset_url}}</code>, <code>{{company_name}}</code>
+  <strong><?= t('email_templates_vars') ?></strong> <code>{{ticket_number}}</code>, <code>{{subject}}</code>, <code>{{name}}</code>, <code>{{reply_message}}</code>, <code>{{ticket_url}}</code>, <code>{{reset_url}}</code>, <code>{{company_name}}</code>
 </div>
 <div class="row g-3">
   <div class="col-lg-3">

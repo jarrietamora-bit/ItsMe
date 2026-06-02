@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     if ($action === 'delete' && $tid) {
         db()->prepare("DELETE FROM ticket_tags WHERE tag_id=?")->execute([$tid]);
         db()->prepare("DELETE FROM tags WHERE id=?")->execute([$tid]);
-        flash('success', t('deleted'));
+        flash('success', t('tag_deleted'));
     }
 
     if ($action === 'toggle' && $tid) {

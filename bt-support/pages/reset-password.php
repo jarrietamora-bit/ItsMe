@@ -11,7 +11,7 @@ if (!$row) { $err = t('reset_invalid'); }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $row && csrf_verify()) {
     $pass  = $_POST['password']  ?? '';
     $pass2 = $_POST['password2'] ?? '';
-    if (strlen($pass) < 8) { $err = 'Contraseña mínimo 8 caracteres.'; }
+    if (strlen($pass) < 8) { $err = t('password_min_8'); }
     elseif ($pass !== $pass2) { $err = t('passwords_not_match'); }
     else {
         $hash = password_hash($pass, PASSWORD_BCRYPT);
