@@ -168,13 +168,13 @@ include ROOT . '/templates/header.php';
             <input type="text" name="subject" class="form-control" value="<?= h($_POST['subject']??'') ?>" required>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">Descripción del problema <span class="text-danger">*</span></label>
+            <label class="form-label fw-semibold"><?= t('problem_description') ?> <span class="text-danger">*</span></label>
             <textarea name="message" class="form-control" rows="8" required><?= h($_POST['message']??'') ?></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold"><?= t('attachments') ?> <small class="text-muted fw-normal">(<?= t('optional') ?>)</small></label>
             <input type="file" name="attachments[]" class="form-control" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.csv">
-            <small class="text-muted">Máx <?= setting('upload_max_mb') ?: 10 ?>MB por archivo</small>
+            <small class="text-muted"><?= sprintf(t('max_file_hint'), setting('upload_max_mb') ?: 10) ?></small>
           </div>
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i><?= t('submit') ?></button>
@@ -237,14 +237,14 @@ include ROOT . '/templates/header.php';
           <?php if (is_supervisor()): ?>
           <div class="mb-3">
             <label class="form-label small fw-semibold">
-              <i class="bi bi-clock me-1 text-warning"></i>Fecha límite de resolución
+              <i class="bi bi-clock me-1 text-warning"></i><?= t('resolution_due_label') ?>
               <small class="text-muted fw-normal">(opcional)</small>
             </label>
             <input type="datetime-local" name="resolution_due" form="ticketForm"
                    class="form-control form-control-sm"
                    min="<?= date('Y-m-d\TH:i') ?>"
                    value="<?= h($_POST['resolution_due']??'') ?>">
-            <small class="text-muted">Sobreescribe el tiempo SLA calculado por prioridad.</small>
+            <small class="text-muted"><?= t('resolution_due_hint') ?></small>
           </div>
           <?php endif; ?>
       </div>
@@ -254,7 +254,7 @@ include ROOT . '/templates/header.php';
     <div class="card border-0 shadow-sm mt-3">
       <div class="card-header bg-white"><strong><i class="bi bi-lightbulb me-2 text-warning"></i><?= t('knowledge_base') ?></strong></div>
       <div class="card-body p-2" id="kbSuggestions">
-        <small class="text-muted ps-2">Escriba en el asunto para ver sugerencias...</small>
+        <small class="text-muted ps-2"><?= t('kb_suggestions_hint') ?></small>
       </div>
     </div>
   </div>

@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $name  = trim($_POST['name']  ?? '');
         $phone = trim($_POST['phone'] ?? '');
         $lang  = $_POST['language']   ?? $user['language'];
-        if (!$name) $errors[] = t('required') . ' (nombre)';
+        if (!$name) $errors[] = t('required') . ' (' . t('name') . ')';
         if (empty($errors)) {
             db()->prepare("UPDATE users SET name=?,phone=?,language=?,updated_at=NOW() WHERE id=?")->execute([$name,$phone,$lang,$uid]);
             if (!empty($_FILES['avatar']['name'])) {
@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $current = $_POST['current_password'] ?? '';
         $new     = $_POST['new_password']     ?? '';
         $new2    = $_POST['new_password2']    ?? '';
-        if (!password_verify($current, $user['password'])) $errors[] = 'Contraseña actual incorrecta.';
-        if (strlen($new) < 8) $errors[] = 'Nueva contraseña mínimo 8 caracteres.';
+        if (!password_verify($current, $user['password'])) $errors[] = t('wrong_current_password');
+        if (strlen($new) < 8) $errors[] = t('password_min_8');
         if ($new !== $new2) $errors[] = t('passwords_not_match');
         if (empty($errors)) {
             db()->prepare("UPDATE users SET password=? WHERE id=?")->execute([password_hash($new,PASSWORD_BCRYPT),$uid]);

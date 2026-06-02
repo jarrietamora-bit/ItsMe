@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     }
     if ($action === 'delete' && $aid) {
         db()->prepare("DELETE FROM kb_articles WHERE id=?")->execute([$aid]);
-        flash('success','Artículo eliminado.');
+        flash('success', t('article_deleted'));
     }
     redirect(base_url('knowledge/manage'));
 }
@@ -55,11 +55,11 @@ include ROOT . '/templates/header.php';
       <?= csrf_field() ?><input type="hidden" name="action" value="save"><input type="hidden" name="aid" value="<?= $edit_art['id']??0 ?>">
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label class="form-label">Título (ES) *</label>
+          <label class="form-label"><?= t('title_es_label') ?></label>
           <input type="text" name="title_es" class="form-control" value="<?= h($edit_art['title_es']??'') ?>" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Title (EN) *</label>
+          <label class="form-label"><?= t('title_en_label') ?></label>
           <input type="text" name="title_en" class="form-control" value="<?= h($edit_art['title_en']??'') ?>">
         </div>
       </div>
@@ -70,7 +70,7 @@ include ROOT . '/templates/header.php';
       <div class="tab-content mb-3">
         <div class="tab-pane fade show active" id="esArticle">
           <textarea name="body_es" class="form-control" rows="10"><?= h($edit_art['content_es']??'') ?></textarea>
-          <small class="text-muted">Acepta HTML. Use &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;code&gt;, &lt;img&gt;, etc.</small>
+          <small class="text-muted"><?= t('html_hint') ?></small>
         </div>
         <div class="tab-pane fade" id="enArticle">
           <textarea name="body_en" class="form-control" rows="10"><?= h($edit_art['content_en']??'') ?></textarea>
@@ -80,7 +80,7 @@ include ROOT . '/templates/header.php';
         <div class="col-md-4">
           <label class="form-label"><?= t('kb_category') ?></label>
           <select name="cat_id" class="form-select">
-            <option value="">Sin categoría</option>
+            <option value=""><?= t('no_category') ?></option>
             <?php foreach ($cats as $c): ?>
               <option value="<?= $c['id'] ?>" <?= ($edit_art['category_id']??'')==$c['id']?'selected':'' ?>><?= h($c["name_{$lang}"]) ?></option>
             <?php endforeach; ?>
@@ -129,7 +129,7 @@ include ROOT . '/templates/header.php';
           <td>
             <a href="?edit=<?= $a['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><i class="bi bi-pencil"></i></a>
             <a href="<?= base_url('knowledge/article?id='.$a['id']) ?>" target="_blank" class="btn btn-sm btn-outline-primary py-0"><i class="bi bi-eye"></i></a>
-            <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar?')">
+            <form method="post" class="d-inline" onsubmit="return confirm('<?= t('confirm_delete_short') ?>')"  >
               <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="aid" value="<?= $a['id'] ?>">
               <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-trash"></i></button>
             </form>

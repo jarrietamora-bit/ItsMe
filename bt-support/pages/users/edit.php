@@ -6,7 +6,7 @@ $edit_id = (int)($_GET['id'] ?? 0);
 $st = db()->prepare("SELECT * FROM users WHERE id=?");
 $st->execute([$edit_id]);
 $u = $st->fetch();
-if (!$u) { flash('error','Usuario no encontrado.'); redirect(base_url('users')); }
+if (!$u) { flash('error', t('user_not_found')); redirect(base_url('users')); }
 
 // Current departments
 $user_depts = array_column(db()->prepare("SELECT department_id, is_supervisor FROM department_users WHERE user_id=?")->execute([$edit_id]) ? (function() use($edit_id) { $s=db()->prepare("SELECT department_id,is_supervisor FROM department_users WHERE user_id=?"); $s->execute([$edit_id]); return $s->fetchAll(); })() : [], 'department_id');
@@ -23,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     $supervisor_dept = (int)($_POST['supervisor_dept'] ?? 0);
     $new_pass = $_POST['new_password'] ?? '';
 
-    if (!$name)  $errors[] = t('required') . ' (nombre)';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email inválido.';
+    if (!$name)  $errors[] = t('required') . ' (' . t('name') . ')';
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = t('email_invalid');
     if (empty($errors)) {
         $chk = db()->prepare("SELECT id FROM users WHERE email=? AND id!=?");
         $chk->execute([$email,$edit_id]);
-        if ($chk->fetch()) $errors[] = 'Email ya existe en otro usuario.';
+        if ($chk->fetch()) $errors[] = t('email_taken_other');
     }
     if (empty($errors)) {
         db()->prepare("UPDATE users SET name=?,email=?,role=?,phone=?,language=?,updated_at=NOW() WHERE id=?")

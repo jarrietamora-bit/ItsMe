@@ -14,19 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pass  = $_POST['password']  ?? '';
         $pass2 = $_POST['password2'] ?? '';
         if (!$name)  $errors[] = t('required') . ' (' . t('name') . ')';
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email inválido.';
-        if (strlen($pass) < 8) $errors[] = 'Contraseña mínimo 8 caracteres.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = t('email_invalid');
+        if (strlen($pass) < 8) $errors[] = t('password_min_8');
         if ($pass !== $pass2) $errors[] = t('passwords_not_match');
         if (empty($errors)) {
             $st = db()->prepare("SELECT id FROM users WHERE email = ?");
             $st->execute([$email]);
-            if ($st->fetch()) { $errors[] = 'Este email ya está registrado.'; }
+            if ($st->fetch()) { $errors[] = t('email_taken'); }
         }
         if (empty($errors)) {
             $hash = password_hash($pass, PASSWORD_BCRYPT);
             db()->prepare("INSERT INTO users (name, email, password, role, language) VALUES (?,?,?,'client',?)")
                ->execute([$name, $email, $hash, current_lang()]);
-            flash('success', '¡Cuenta creada! Inicia sesión.');
+            flash('success', t('account_created'));
             redirect(base_url('login'));
         }
     }

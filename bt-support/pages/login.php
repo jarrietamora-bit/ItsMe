@@ -130,7 +130,7 @@ $lang          = current_lang();
     <?php if ($allow_reg): ?>
     <hr class="my-4">
     <div class="text-center small">
-      ¿No tiene cuenta?
+      <?= t('no_account') ?>
       <a href="<?= base_url('register') ?>" class="text-decoration-none fw-semibold"><?= t('register') ?></a>
     </div>
     <?php endif; ?>

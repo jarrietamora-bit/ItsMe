@@ -371,14 +371,14 @@ include ROOT . '/templates/header.php';
                 </select>
               </div>
               <?php endif; ?>
-              <textarea name="message" class="form-control" rows="5" placeholder="Escriba su respuesta..." id="replyMsg"></textarea>
+              <textarea name="message" class="form-control" rows="5" placeholder="<?= t('write_reply_placeholder') ?>" id="replyMsg"></textarea>
               <div class="mt-2">
                 <input type="file" name="attachments[]" class="form-control form-control-sm" multiple>
               </div>
             </div>
             <?php if (is_agent()): ?>
             <div class="tab-pane fade" id="noteTab">
-              <textarea name="message" class="form-control" rows="5" placeholder="Nota interna (solo visible para agentes)..." id="noteMsg"></textarea>
+              <textarea name="message" class="form-control" rows="5" placeholder="<?= t('internal_note_placeholder') ?>" id="noteMsg"></textarea>
             </div>
             <?php endif; ?>
           </div>
@@ -499,7 +499,7 @@ include ROOT . '/templates/header.php';
 
     <!-- Tags -->
     <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white"><strong>Etiquetas</strong></div>
+      <div class="card-header bg-white"><strong><?= t('tags') ?></strong></div>
       <div class="card-body">
         <?php if (!empty($ticket_tags)): ?>
         <div class="d-flex flex-wrap gap-1 mb-2">
@@ -522,7 +522,7 @@ include ROOT . '/templates/header.php';
         <form method="post" class="d-flex gap-2 mt-1">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="add_tag">
-          <input type="text" name="tag_name" class="form-control form-control-sm" placeholder="Nueva etiqueta..." autocomplete="off" id="tagInput">
+          <input type="text" name="tag_name" class="form-control form-control-sm" placeholder="<?= t('new_tag_placeholder') ?>" autocomplete="off" id="tagInput">
           <button type="submit" class="btn btn-sm btn-outline-secondary flex-shrink-0">+</button>
         </form>
         <?php endif; ?>
@@ -531,7 +531,7 @@ include ROOT . '/templates/header.php';
 
     <!-- Related tickets -->
     <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white"><strong>Tickets relacionados</strong></div>
+      <div class="card-header bg-white"><strong><?= t('related_tickets') ?></strong></div>
       <div class="card-body">
         <?php if (!empty($related)): ?>
         <ul class="list-unstyled mb-2">
@@ -547,7 +547,7 @@ include ROOT . '/templates/header.php';
               <?= csrf_field() ?>
               <input type="hidden" name="action" value="remove_related">
               <input type="hidden" name="related_id" value="<?= (int)$rel['id'] ?>">
-              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="line-height:1.2" title="Quitar"><i class="bi bi-x"></i></button>
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="line-height:1.2" title="<?= t('remove') ?>"><i class="bi bi-x"></i></button>
             </form>
             <?php endif; ?>
           </li>
@@ -558,7 +558,7 @@ include ROOT . '/templates/header.php';
         <form method="post" class="d-flex gap-2 mt-1">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="add_related">
-          <input type="text" name="related_number" class="form-control form-control-sm" placeholder="Número de ticket...">
+          <input type="text" name="related_number" class="form-control form-control-sm" placeholder="<?= t('related_ticket_placeholder') ?>">
           <button type="submit" class="btn btn-sm btn-outline-secondary flex-shrink-0">+</button>
         </form>
         <?php endif; ?>

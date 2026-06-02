@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $st_utc->execute([$user_id]);
         $ticket_count = (int)$st_utc->fetchColumn();
         if ($ticket_count > 0) {
-            flash('error', "No se puede eliminar: el usuario tiene {$ticket_count} ticket(s). Desactívelo en su lugar.");
+            flash('error', sprintf(t('cant_delete_user_tickets') ?? "Cannot delete: user has {$ticket_count} ticket(s). Deactivate instead.", $ticket_count));
             redirect(base_url('users'));
         }
         db()->prepare("DELETE FROM users WHERE id=?")->execute([$user_id]);
@@ -132,7 +132,7 @@ include ROOT . '/templates/header.php';
             <?php elseif ($u['status']==='inactive'): ?>
               <span class="badge bg-secondary"><?= t('inactive') ?></span>
             <?php else: ?>
-              <span class="badge bg-danger">Bloqueado</span>
+              <span class="badge bg-danger"><?= t('blocked') ?></span>
             <?php endif; ?>
           </td>
           <td class="text-muted"><?= $u['last_login'] ? format_datetime($u['last_login']) : '—' ?></td>

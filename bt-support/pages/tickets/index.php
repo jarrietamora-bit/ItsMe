@@ -157,7 +157,7 @@ include ROOT . '/templates/header.php';
       <?php if (!empty($all_tags)): ?>
       <div class="col-md-2">
         <select name="tag" class="form-select form-select-sm">
-          <option value="">Todas las etiquetas</option>
+          <option value=""><?= t('all_tags') ?></option>
           <?php foreach ($all_tags as $tg): ?>
             <option value="<?= $tg['id'] ?>" <?= $f_tag==$tg['id']?'selected':'' ?>><?= h($tg['name']) ?></option>
           <?php endforeach; ?>
@@ -181,14 +181,14 @@ include ROOT . '/templates/header.php';
       <select name="bulk_action" class="form-select form-select-sm" style="max-width:180px">
         <option value=""><?= t('bulk_action') ?></option>
         <?php if (is_agent()): ?>
-        <option value="assign_me">Asignarme</option>
+        <option value="assign_me"><?= t('assign_me') ?></option>
         <option value="in_progress"><?= t('status_in_progress') ?></option>
         <option value="waiting"><?= t('status_waiting') ?></option>
         <option value="resolve"><?= t('status_resolved') ?></option>
         <option value="close"><?= t('status_closed') ?></option>
         <?php endif; ?>
       </select>
-      <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('¿Aplicar acción?')"><?= t('submit') ?></button>
+      <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('<?= t('confirm_action') ?>')"><?= t('submit') ?></button>
       <span class="text-muted small ms-2"><?= $total ?> <?= t('results') ?></span>
     </div>
     <?php endif; ?>

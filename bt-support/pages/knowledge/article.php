@@ -12,7 +12,7 @@ if (!$art['is_public'] && !is_agent()) { http_response_code(403); exit; }
 if (isset($_GET['helpful']) && is_logged_in()) {
     $v = $_GET['helpful'] === 'yes' ? 'helpful_yes' : 'helpful_no';
     db()->prepare("UPDATE kb_articles SET {$v}={$v}+1 WHERE id=?")->execute([$id]);
-    flash('success','¡Gracias por tu calificación!');
+    flash('success', t('thank_you_rating'));
     redirect(base_url('knowledge/article?id='.$id));
 }
 
@@ -42,7 +42,7 @@ if (!is_logged_in()) {
       <div class="text-muted small mb-3">
         <i class="bi bi-person me-1"></i><?= h($art['author_name']) ?> &nbsp;
         <i class="bi bi-calendar me-1"></i><?= format_datetime($art['created_at']) ?> &nbsp;
-        <i class="bi bi-eye me-1"></i><?= $art['views'] ?> vistas
+        <i class="bi bi-eye me-1"></i><?= $art['views'] ?> <?= t('views_label') ?>
         <?php if (!$art['is_public']): ?><span class="badge bg-warning text-dark ms-2"><?= t('private') ?></span><?php endif; ?>
       </div>
       <div class="article-content" style="line-height:1.8"><?= $art["content_{$lang}"] ?></div>
