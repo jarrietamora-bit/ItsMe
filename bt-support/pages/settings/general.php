@@ -81,7 +81,7 @@ $logo = setting('company_logo');
                 <input type="color" name="company_color" class="form-control form-control-color" value="<?= h(setting('company_color','#0d6efd')) ?>" id="colorPicker">
                 <input type="text" class="form-control" id="colorHex" value="<?= h(setting('company_color','#0d6efd')) ?>" placeholder="#0d6efd">
               </div>
-              <small class="text-muted">Color principal de la interfaz (navbar, botones).</small>
+              <small class="text-muted"><?= t('color_hint') ?></small>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ $logo = setting('company_logo');
 
       <!-- System settings -->
       <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white"><strong><i class="bi bi-sliders me-2"></i>Sistema</strong></div>
+        <div class="card-header bg-white"><strong><i class="bi bi-sliders me-2"></i><?= t('system_section') ?></strong></div>
         <div class="card-body p-4">
           <div class="row g-3">
             <div class="col-md-6">
@@ -122,7 +122,7 @@ $logo = setting('company_logo');
             <div class="col-12">
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" name="allow_registration" value="1" id="allowReg" <?= setting('allow_registration')==='1'?'checked':'' ?>>
-                <label class="form-check-label" for="allowReg"><?= t('allow_registration') ?> (clientes pueden registrarse solos)</label>
+                <label class="form-check-label" for="allowReg"><?= t('allow_registration') ?> <?= t('public_reg_hint') ?></label>
               </div>
             </div>
             <div class="col-12">
@@ -149,11 +149,11 @@ $logo = setting('company_logo');
             </div>
           <?php else: ?>
             <div class="border rounded d-flex align-items-center justify-content-center mb-3" style="height:100px;background:#f8f9fa">
-              <div class="text-muted"><i class="bi bi-image fs-1 d-block"></i><small>Sin logo</small></div>
+              <div class="text-muted"><i class="bi bi-image fs-1 d-block"></i><small><?= t('no_logo') ?></small></div>
             </div>
           <?php endif; ?>
           <input type="file" name="company_logo" class="form-control form-control-sm" accept="image/*">
-          <small class="text-muted d-block mt-1">JPG, PNG, SVG — Recomendado: 200×60px</small>
+          <small class="text-muted d-block mt-1">JPG, PNG, SVG — <?= t('logo_size_hint') ?></small>
         </div>
       </div>
 
@@ -161,13 +161,13 @@ $logo = setting('company_logo');
         <div class="card-header bg-white"><strong><?= t('favicon') ?></strong></div>
         <div class="card-body">
           <input type="file" name="favicon" class="form-control form-control-sm" accept=".ico,.png,.gif">
-          <small class="text-muted">ICO o PNG 32×32px</small>
+          <small class="text-muted"><?= t('favicon_hint') ?></small>
         </div>
       </div>
 
       <!-- Preview -->
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white"><strong>Vista previa del color</strong></div>
+        <div class="card-header bg-white"><strong><?= t('color_preview') ?></strong></div>
         <div class="card-body p-3">
           <div id="colorPreview" class="rounded p-3 text-white text-center fw-bold" style="background:<?= h(setting('company_color','#0d6efd')) ?>">
             <?= h(setting('company_name','BT-Support')) ?>

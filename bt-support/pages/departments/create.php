@@ -93,7 +93,7 @@ include ROOT . '/templates/header.php';
                 <option value="<?= $a['id'] ?>" <?= ($_POST['supervisor_id']??'')==$a['id']?'selected':'' ?>><?= h($a['name']) ?></option>
               <?php endforeach; ?>
             </select>
-            <small class="text-muted">El supervisor puede ver y reasignar todos los tickets del departamento.</small>
+            <small class="text-muted"><?= t('supervisor_dept_hint') ?></small>
           </div>
           <?php endif; ?>
 

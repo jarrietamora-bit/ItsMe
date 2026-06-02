@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     if ($action === 'delete') {
         $del_id = (int)($_POST['del_id'] ?? 0);
         if ($del_id) db()->prepare("DELETE FROM sla_policies WHERE id=?")->execute([$del_id]);
-        flash('success', 'Política SLA eliminada.');
+        flash('success', t('sla_deleted'));
     }
     redirect(base_url('settings/sla'));
 }
@@ -60,14 +60,14 @@ include ROOT . '/templates/header.php';
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
-  <div class="card-header bg-white"><strong>Políticas SLA actuales</strong></div>
+  <div class="card-header bg-white"><strong><?= t('current_sla_policies') ?></strong></div>
   <form method="post">
     <?= csrf_field() ?><input type="hidden" name="action" value="save">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0 small">
         <thead class="table-light">
           <tr>
-            <th>Nombre</th>
+            <th><?= t('name') ?></th>
             <th><?= t('priority') ?></th>
             <th><?= t('first_response_h') ?></th>
             <th><?= t('resolution_h') ?></th>
@@ -96,7 +96,7 @@ include ROOT . '/templates/header.php';
           <?php endforeach; ?>
           <!-- New row template -->
           <tr id="newRow">
-            <td><input type="hidden" name="sla_id[]" value="0"><input type="text" name="sla_name[]" class="form-control form-control-sm" placeholder="Nueva política"></td>
+            <td><input type="hidden" name="sla_id[]" value="0"><input type="text" name="sla_name[]" class="form-control form-control-sm" placeholder="<?= t('new_policy') ?>"></td>
             <td>
               <select name="sla_priority[]" class="form-select form-select-sm">
                 <option value=""><?= t('select') ?>...</option>
@@ -126,7 +126,7 @@ include ROOT . '/templates/header.php';
 </form>
 <script>
 function submitDeleteSla(id) {
-  if (!confirm('¿Eliminar?')) return;
+  if (!confirm('<?= t('confirm_delete_short') ?>')) return;
   document.getElementById('deleteSlaId').value = id;
   var form = document.getElementById('deleteSlaForm');
   form.querySelector('input[name="action"]').value = 'delete';
@@ -135,10 +135,10 @@ function submitDeleteSla(id) {
 </script>
 
 <div class="card border-0 shadow-sm">
-  <div class="card-header bg-white"><strong>Prioridades del sistema</strong></div>
+  <div class="card-header bg-white"><strong><?= t('system_priorities') ?></strong></div>
   <div class="table-responsive">
     <table class="table table-sm align-middle mb-0 small">
-      <thead class="table-light"><tr><th>Nivel</th><th>ES</th><th>EN</th><th>Color</th></tr></thead>
+      <thead class="table-light"><tr><th><?= t('level') ?></th><th>ES</th><th>EN</th><th><?= t('color') ?></th></tr></thead>
       <tbody>
         <?php foreach ($priorities as $p): ?>
         <tr>
@@ -159,13 +159,10 @@ $esc_notify  = setting('sla_escalation_notify') ?: 'supervisor';
 <div class="card border-0 shadow-sm mt-4">
   <div class="card-header bg-white d-flex align-items-center gap-2">
     <i class="bi bi-bell-fill text-warning"></i>
-    <strong>Escalación automática por SLA vencido</strong>
+    <strong><?= t('escalation_title') ?></strong>
   </div>
   <div class="card-body p-4">
-    <p class="text-muted small mb-3">
-      Cuando un ticket supera su tiempo de resolución SLA sin estar resuelto o cerrado,
-      el sistema puede notificar automáticamente a los responsables una sola vez.
-    </p>
+    <p class="text-muted small mb-3"><?= t('escalation_desc') ?></p>
     <form method="post">
       <?= csrf_field() ?>
       <input type="hidden" name="action" value="save_escalation">
@@ -175,34 +172,34 @@ $esc_notify  = setting('sla_escalation_notify') ?: 'supervisor';
                  id="escEnabled" value="1" <?= $esc_enabled ? 'checked' : '' ?>
                  onchange="document.getElementById('escOptions').style.display=this.checked?'block':'none'">
           <label class="form-check-label fw-semibold" for="escEnabled">
-            Activar notificaciones de escalación SLA
+            <?= t('escalation_enabled_label') ?>
           </label>
         </div>
       </div>
 
       <div id="escOptions" style="display:<?= $esc_enabled ? 'block' : 'none' ?>">
         <div class="mb-3">
-          <label class="form-label fw-semibold">¿A quién notificar?</label>
+          <label class="form-label fw-semibold"><?= t('notify_who') ?></label>
           <div class="d-flex gap-3">
             <div class="form-check">
               <input class="form-check-input" type="radio" name="sla_escalation_notify"
                      id="notifySup" value="supervisor" <?= $esc_notify==='supervisor'?'checked':'' ?>>
               <label class="form-check-label" for="notifySup">
-                <i class="bi bi-person-badge me-1 text-warning"></i>Solo supervisores del departamento
+                <i class="bi bi-person-badge me-1 text-warning"></i><?= t('notify_supervisors') ?>
               </label>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="sla_escalation_notify"
                      id="notifyAdm" value="admin" <?= $esc_notify==='admin'?'checked':'' ?>>
               <label class="form-check-label" for="notifyAdm">
-                <i class="bi bi-shield me-1 text-danger"></i>Solo administradores
+                <i class="bi bi-shield me-1 text-danger"></i><?= t('notify_admins') ?>
               </label>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="sla_escalation_notify"
                      id="notifyBoth" value="both" <?= $esc_notify==='both'?'checked':'' ?>>
               <label class="form-check-label" for="notifyBoth">
-                <i class="bi bi-people me-1 text-primary"></i>Supervisores y administradores
+                <i class="bi bi-people me-1 text-primary"></i><?= t('notify_both_label') ?>
               </label>
             </div>
           </div>
@@ -210,13 +207,12 @@ $esc_notify  = setting('sla_escalation_notify') ?: 'supervisor';
 
         <div class="alert alert-info py-2 small mb-3">
           <i class="bi bi-info-circle me-1"></i>
-          La notificación se envía <strong>una sola vez</strong> por ticket en el momento exacto en que se detecta el vencimiento.
-          Se envía tanto como alerta en el sistema (campana) como por correo electrónico (si el SMTP está configurado).
+          <?= t('escalation_once_note') ?>
         </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-sm">
-        <i class="bi bi-save me-1"></i>Guardar configuración de escalación
+        <i class="bi bi-save me-1"></i><?= t('save_escalation') ?>
       </button>
     </form>
   </div>

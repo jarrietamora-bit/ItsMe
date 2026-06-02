@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
         $st_tc->execute([$did]);
         $ticket_count = (int)$st_tc->fetchColumn();
         if ($ticket_count > 0) {
-            flash('error', "No se puede eliminar: el departamento tiene {$ticket_count} ticket(s) activo(s).");
+            flash('error', sprintf(t('cant_delete_dept_tickets'), $ticket_count));
             redirect(base_url('departments'));
         }
         db()->prepare("DELETE FROM departments WHERE id=?")->execute([$did]);

@@ -190,7 +190,7 @@ function fmt_time($min): string {
   <!-- Volume chart -->
   <div class="col-lg-8">
     <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white"><strong>Volumen diario</strong></div>
+      <div class="card-header bg-white"><strong><?= t('daily_volume') ?></strong></div>
       <div class="card-body"><canvas id="volumeChart" height="120"></canvas></div>
     </div>
   </div>
@@ -206,7 +206,7 @@ function fmt_time($min): string {
             <i class="bi bi-star-fill <?= $i<=$avg?'text-warning':'text-muted' ?> fs-5"></i>
           <?php endfor; ?>
         </div>
-        <div class="text-muted small"><?= number_format($csat['total_ratings']??0) ?> calificaciones</div>
+        <div class="text-muted small"><?= number_format($csat['total_ratings']??0) ?> <?= t('ratings_label') ?></div>
       </div>
     </div>
   </div>
@@ -218,7 +218,7 @@ function fmt_time($min): string {
   <div class="card-header bg-white"><strong><?= t('report_by_agent') ?></strong></div>
   <div class="table-responsive">
     <table class="table table-sm align-middle mb-0 small">
-      <thead class="table-light"><tr><th>Agente</th><th>Total</th><th>Resueltos</th><th>Cerrados</th><th>SLA incumplido</th><th>Resp. promedio</th><th>Tasa resolución</th></tr></thead>
+      <thead class="table-light"><tr><th><?= t('agent') ?></th><th><?= t('total') ?></th><th><?= t('status_resolved') ?></th><th><?= t('status_closed') ?></th><th><?= t('sla_breached') ?></th><th><?= t('avg_response') ?></th><th><?= t('resolution_rate') ?></th></tr></thead>
       <tbody>
         <?php foreach ($by_agent as $a):
           $rate = $a['total'] > 0 ? round(($a['resolved']+$a['closed'])/$a['total']*100) : 0;
@@ -260,7 +260,7 @@ function fmt_time($min): string {
       <div class="card-header bg-white"><strong><?= t('report_by_category') ?></strong></div>
       <div class="table-responsive">
         <table class="table table-sm mb-0 small">
-          <thead class="table-light"><tr><th>Categoría</th><th>Tickets</th></tr></thead>
+          <thead class="table-light"><tr><th><?= t('category') ?></th><th><?= t('tickets') ?></th></tr></thead>
           <tbody>
             <?php foreach ($by_cat as $c): ?>
             <tr><td><?= h($c['name']) ?></td><td><span class="badge bg-primary"><?= $c['total'] ?></span></td></tr>

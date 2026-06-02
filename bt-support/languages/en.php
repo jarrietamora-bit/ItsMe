@@ -15,8 +15,11 @@ return [
     'no'                => 'No',
     'active'            => 'Active',
     'inactive'          => 'Inactive',
+    'blocked'           => 'Blocked',
     'loading'           => 'Loading...',
     'confirm_delete'    => 'Are you sure you want to delete this item?',
+    'confirm_delete_short' => 'Delete?',
+    'confirm_action'    => 'Apply action?',
     'no_results'        => 'No results found.',
     'required'          => 'This field is required.',
     'success'           => 'Operation successful!',
@@ -25,6 +28,7 @@ return [
     'minutes_ago'       => 'min ago',
     'hours_ago'         => 'h ago',
     'days_ago'          => 'd ago',
+    'days_unit'         => 'days',
     'all'               => 'All',
     'none'              => 'None',
     'view'              => 'View',
@@ -50,6 +54,35 @@ return [
     'per_page'          => 'per page',
     'showing'           => 'Showing',
     'results'           => 'results',
+    'remove'            => 'Remove',
+    'level'             => 'Level',
+    'no_logo'           => 'No logo',
+    'leave_empty_no_change' => 'Leave empty to keep unchanged',
+    'all_departments'   => 'All departments',
+    'all_tags'          => 'All tags',
+    'root_category'     => '(root category)',
+    'no_category'       => 'No category',
+    'assign_me'         => 'Assign to me',
+    'views_label'       => 'views',
+    'perms_by_role'     => 'Permissions by role',
+
+    // Validation / error messages
+    'email_invalid'          => 'Invalid email address.',
+    'password_min_8'         => 'Password must be at least 8 characters.',
+    'email_taken'            => 'This email is already registered.',
+    'email_taken_other'      => 'Email already used by another user.',
+    'account_created'        => 'Account created! Please sign in.',
+    'wrong_current_password' => 'Incorrect current password.',
+    'role_invalid'           => 'Invalid role.',
+    'user_not_found'         => 'User not found.',
+    'dept_not_found'         => 'Department not found.',
+    'category_deleted'       => 'Category deleted.',
+    'response_deleted'       => 'Response deleted.',
+    'sla_deleted'            => 'SLA policy deleted.',
+    'article_deleted'        => 'Article deleted.',
+    'thank_you_rating'       => 'Thank you for your rating!',
+    'cant_delete_user_tickets' => 'Cannot delete: user has %d active ticket(s). Deactivate instead.',
+    'cant_delete_dept_tickets' => 'Cannot delete: department has %d active ticket(s).',
 
     // Auth
     'login'             => 'Sign in',
@@ -68,6 +101,8 @@ return [
     'passwords_not_match'=> 'Passwords do not match.',
     'new_password'      => 'New password',
     'verify_email_sent' => 'A verification email has been sent.',
+    'no_account'        => 'Don\'t have an account?',
+    'forgot_password_desc' => 'Enter your email and we will send you a link to reset your password.',
 
     // Roles
     'role'              => 'Role',
@@ -142,6 +177,16 @@ return [
     'add_note'          => 'Add internal note',
     'note_added'        => 'Note added.',
     'view_all_tickets'  => 'View all tickets',
+    'message_label'     => 'Message',
+    'problem_description'   => 'Problem description',
+    'write_reply_placeholder'   => 'Write your reply...',
+    'internal_note_placeholder' => 'Internal note (visible to agents only)...',
+    'new_tag_placeholder'       => 'New tag...',
+    'related_ticket_placeholder'=> 'Ticket number...',
+    'kb_suggestions_hint'       => 'Type in the subject to see suggestions...',
+    'resolution_due_label'      => 'Resolution deadline',
+    'resolution_due_hint'       => 'Overrides the SLA time calculated by priority.',
+    'max_file_hint'             => 'Max %dMB per file',
 
     // Statuses
     'status_open'       => 'Open',
@@ -165,6 +210,8 @@ return [
     'avatar'            => 'Profile photo',
     'last_login'        => 'Last login',
     'member_since'      => 'Member since',
+    'main_department'   => 'Main department',
+    'supervisor_dept_hint' => 'The supervisor can view and reassign all tickets in the department.',
 
     // Departments
     'departments'       => 'Departments',
@@ -225,6 +272,17 @@ return [
     'upload_logo'       => 'Upload logo',
     'current_logo'      => 'Current logo',
     'remove_logo'       => 'Remove logo',
+    'system_section'    => 'System',
+    'smtp_config'       => 'SMTP Configuration',
+    'common_providers'  => 'Common providers',
+    'color_hint'        => 'Primary interface color (navbar, buttons).',
+    'public_reg_hint'   => '(clients can self-register)',
+    'logo_size_hint'    => 'Recommended: 200×60px',
+    'favicon_hint'      => 'ICO or PNG 32×32px',
+    'color_preview'     => 'Color preview',
+    'select_template_hint' => 'Select a template to edit it.',
+    'send_to'              => 'Send to',
+    'sending'              => 'Sending...',
 
     // SLA
     'sla'               => 'SLA',
@@ -233,6 +291,18 @@ return [
     'resolution_h'      => 'Resolution (hours)',
     'business_hours'    => 'Business hours only',
     'sla_warning'       => 'SLA about to expire warning',
+    'current_sla_policies'  => 'Current SLA policies',
+    'new_policy'            => 'New policy',
+    'system_priorities'     => 'System priorities',
+    'escalation_title'      => 'Automatic escalation for overdue SLA',
+    'escalation_desc'       => 'When a ticket exceeds its SLA resolution time without being resolved or closed, the system can automatically notify the responsible parties once.',
+    'escalation_enabled_label' => 'Enable SLA escalation notifications',
+    'notify_who'            => 'Who to notify?',
+    'notify_supervisors'    => 'Department supervisors only',
+    'notify_admins'         => 'Administrators only',
+    'notify_both_label'     => 'Supervisors and administrators',
+    'escalation_once_note'  => 'The notification is sent <strong>once</strong> per ticket at the exact moment the breach is detected. It is sent both as an in-app alert (bell) and by email (if SMTP is configured).',
+    'save_escalation'       => 'Save escalation settings',
 
     // Knowledge Base
     'knowledge_base'    => 'Knowledge Base',
@@ -250,6 +320,10 @@ return [
     'was_helpful'       => 'Was this helpful?',
     'helpful_yes'       => 'Yes, it helped',
     'helpful_no'        => 'No, it didn\'t help',
+    'title_es_label'    => 'Title (ES) *',
+    'title_en_label'    => 'Title (EN)',
+    'html_hint'         => 'Accepts HTML. Use &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;code&gt;, &lt;img&gt;, etc.',
+    'kb_search_placeholder' => 'Search the knowledge base...',
 
     // Reports
     'reports'           => 'Reports',
@@ -267,6 +341,11 @@ return [
     'csat_score'        => 'CSAT score',
     'export_csv'        => 'Export CSV',
     'export_pdf'        => 'Export PDF',
+    'daily_volume'      => 'Daily volume',
+    'ratings_label'     => 'ratings',
+    'agent'             => 'Agent',
+    'avg_response'      => 'Avg. response',
+    'resolution_rate'   => 'Resolution rate',
 
     // Notifications
     'notifications'     => 'Notifications',
@@ -276,6 +355,8 @@ return [
     // Canned Responses
     'canned_responses'  => 'Canned responses',
     'new_canned'        => 'New canned response',
+    'content_label'     => 'Content *',
+    'optional_dept_hint'=> '(optional — leave blank for all departments)',
 
     // Language
     'language'          => 'Language',

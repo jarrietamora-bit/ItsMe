@@ -6,7 +6,7 @@ $did = (int)($_GET['id'] ?? 0);
 $st  = db()->prepare("SELECT * FROM departments WHERE id=?");
 $st->execute([$did]);
 $dept = $st->fetch();
-if (!$dept) { flash('error','Departamento no encontrado.'); redirect(base_url('departments')); }
+if (!$dept) { flash('error', t('dept_not_found')); redirect(base_url('departments')); }
 
 // Current members
 $cur_members = array_column((function() use($did){ $s=db()->prepare("SELECT user_id,is_supervisor FROM department_users WHERE department_id=?"); $s->execute([$did]); return $s->fetchAll(); })(),'user_id');

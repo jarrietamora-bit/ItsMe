@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     }
     if ($action === 'delete' && $cid) {
         db()->prepare("DELETE FROM categories WHERE id=?")->execute([$cid]);
-        flash('success','Categoría eliminada.');
+        flash('success', t('category_deleted'));
     }
     if ($action === 'toggle' && $cid) {
         db()->prepare("UPDATE categories SET status=IF(status='active','inactive','active') WHERE id=?")->execute([$cid]);
@@ -55,7 +55,7 @@ include ROOT . '/templates/header.php';
           <div class="mb-3">
             <label class="form-label"><?= t('parent_category') ?> <small class="text-muted">(opcional)</small></label>
             <select name="parent_id" class="form-select">
-              <option value=""><?= t('none') ?> (categoría raíz)</option>
+              <option value=""><?= t('none') ?> <?= t('root_category') ?></option>
               <?php foreach ($parents as $p): ?>
                 <?php if (!$edit_row || $p['id'] != $edit_row['id']): ?>
                 <option value="<?= $p['id'] ?>" <?= ($edit_row['parent_id']??'')==$p['id']?'selected':'' ?>><?= h($p['name']) ?></option>
@@ -66,7 +66,7 @@ include ROOT . '/templates/header.php';
           <div class="mb-3">
             <label class="form-label"><?= t('department') ?> <small class="text-muted">(opcional)</small></label>
             <select name="dept_id" class="form-select">
-              <option value="">Todos</option>
+              <option value=""><?= t('all_departments') ?></option>
               <?php foreach ($departments as $d): ?>
                 <option value="<?= $d['id'] ?>" <?= ($edit_row['department_id']??'')==$d['id']?'selected':'' ?>><?= h($d['name']) ?></option>
               <?php endforeach; ?>

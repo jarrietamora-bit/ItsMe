@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_verify()) {
     }
     if ($action === 'delete' && $id) {
         db()->prepare("DELETE FROM canned_responses WHERE id=?")->execute([$id]);
-        flash('success','Respuesta eliminada.');
+        flash('success', t('response_deleted'));
     }
     redirect(base_url('settings/canned'));
 }
@@ -52,13 +52,13 @@ include ROOT . '/templates/header.php';
             <input type="text" name="name" class="form-control" value="<?= h($edit_row['name']??'') ?>" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Contenido *</label>
+            <label class="form-label"><?= t('content_label') ?></label>
             <textarea name="content" class="form-control" rows="6" required><?= h($edit_row['content']??'') ?></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label"><?= t('department') ?> <small class="text-muted">(<?= t('optional') ?> — si es general dejar en blanco)</small></label>
+            <label class="form-label"><?= t('department') ?> <small class="text-muted"><?= t('optional_dept_hint') ?></small></label>
             <select name="dept_id" class="form-select">
-              <option value="">Todos los departamentos</option>
+              <option value=""><?= t('all_departments') ?></option>
               <?php foreach ($departments as $d): ?>
                 <option value="<?= $d['id'] ?>" <?= ($edit_row['department_id']??'')==$d['id']?'selected':'' ?>><?= h($d['name']) ?></option>
               <?php endforeach; ?>
@@ -76,7 +76,7 @@ include ROOT . '/templates/header.php';
     <div class="card border-0 shadow-sm">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 small">
-          <thead class="table-light"><tr><th>Nombre</th><th>Departamento</th><th><?= t('actions') ?></th></tr></thead>
+          <thead class="table-light"><tr><th><?= t('name') ?></th><th><?= t('department') ?></th><th><?= t('actions') ?></th></tr></thead>
           <tbody>
             <?php if (empty($canned)): ?>
             <tr><td colspan="3" class="text-center text-muted py-4"><?= t('no_results') ?></td></tr>
@@ -86,10 +86,10 @@ include ROOT . '/templates/header.php';
                 <div class="fw-semibold"><?= h($cr['name']) ?></div>
                 <div class="text-muted text-truncate" style="max-width:280px"><?= h(substr($cr['content'],0,80)) ?>...</div>
               </td>
-              <td><?= h($cr['dept_name']??'General') ?></td>
+              <td><?= h($cr['dept_name'] ?: t('all_departments')) ?></td>
               <td>
                 <a href="?edit=<?= $cr['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><i class="bi bi-pencil"></i></a>
-                <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar?')">
+                <form method="post" class="d-inline" onsubmit="return confirm('<?= t('confirm_delete_short') ?>')"  >
                   <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= $cr['id'] ?>">
                   <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-trash"></i></button>
                 </form>

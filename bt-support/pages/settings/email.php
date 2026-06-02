@@ -58,13 +58,13 @@ include ROOT . '/templates/header.php';
 <div class="row g-4">
   <div class="col-lg-7">
     <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white"><strong><i class="bi bi-envelope-gear me-2"></i>Configuración SMTP</strong></div>
+      <div class="card-header bg-white"><strong><i class="bi bi-envelope-gear me-2"></i><?= t('smtp_config') ?></strong></div>
       <div class="card-body p-4">
         <form method="post" novalidate>
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="save">
           <div class="mb-3">
-            <label class="form-label">Método de envío</label>
+            <label class="form-label"><?= t('mail_method') ?></label>
             <select name="mail_method" class="form-select" id="mailMethod" onchange="toggleSmtp()">
               <option value="php" <?= ($cfg['mail_method']??'php')==='php'?'selected':'' ?>>PHP mail() — Servidor de hosting</option>
               <option value="smtp" <?= ($cfg['mail_method']??'')==='smtp'?'selected':'' ?>>SMTP personalizado</option>
@@ -85,7 +85,7 @@ include ROOT . '/templates/header.php';
                 <input type="email" name="smtp_user" class="form-control" value="<?= h($cfg['smtp_user']??'') ?>">
               </div>
               <div class="col-12">
-                <label class="form-label"><?= t('smtp_pass') ?> <small class="text-muted">(dejar vacío para no cambiar)</small></label>
+                <label class="form-label"><?= t('smtp_pass') ?> <small class="text-muted">(<?= t('leave_empty_no_change') ?>)</small></label>
                 <input type="password" name="smtp_pass" class="form-control" autocomplete="new-password">
               </div>
               <div class="col-md-6">
@@ -120,7 +120,7 @@ include ROOT . '/templates/header.php';
       <div class="card-header bg-white"><strong><i class="bi bi-send me-2"></i><?= t('test_email') ?></strong></div>
       <div class="card-body">
         <div class="mb-3">
-          <label class="form-label">Enviar a</label>
+          <label class="form-label"><?= t('send_to') ?></label>
           <input type="email" id="testEmailTo" class="form-control" value="<?= h(current_user()['email']) ?>">
         </div>
         <button id="btnTestEmail" class="btn btn-outline-primary btn-sm" onclick="sendTestEmail()">
@@ -131,7 +131,7 @@ include ROOT . '/templates/header.php';
     </div>
 
     <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white"><strong>Proveedores comunes</strong></div>
+      <div class="card-header bg-white"><strong><?= t('common_providers') ?></strong></div>
       <div class="card-body small">
         <table class="table table-sm">
           <tr><td><strong>Gmail</strong></td><td>smtp.gmail.com:587 TLS</td></tr>
@@ -162,7 +162,7 @@ function sendTestEmail() {
   if (!to) { alert('Ingrese un correo destino'); return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span><?= t('sending') ?>';
   result.style.display = 'none';
 
   const fd = new FormData();

@@ -98,7 +98,7 @@ include ROOT . '/templates/header.php';
       </div>
     </div>
     <?php else: ?>
-    <div class="card border-0 shadow-sm"><div class="card-body text-center text-muted py-5">Seleccione una plantilla para editarla.</div></div>
+    <div class="card border-0 shadow-sm"><div class="card-body text-center text-muted py-5"><?= t('select_template_hint') ?></div></div>
     <?php endif; ?>
   </div>
 </div>

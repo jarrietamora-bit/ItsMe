@@ -15,8 +15,11 @@ return [
     'no'                => 'No',
     'active'            => 'Activo',
     'inactive'          => 'Inactivo',
+    'blocked'           => 'Bloqueado',
     'loading'           => 'Cargando...',
     'confirm_delete'    => '¿Está seguro de que desea eliminar este elemento?',
+    'confirm_delete_short' => '¿Eliminar?',
+    'confirm_action'    => '¿Aplicar acción?',
     'no_results'        => 'No se encontraron resultados.',
     'required'          => 'Este campo es obligatorio.',
     'success'           => '¡Operación exitosa!',
@@ -25,6 +28,7 @@ return [
     'minutes_ago'       => 'min atrás',
     'hours_ago'         => 'h atrás',
     'days_ago'          => 'd atrás',
+    'days_unit'         => 'días',
     'all'               => 'Todos',
     'none'              => 'Ninguno',
     'view'              => 'Ver',
@@ -50,6 +54,35 @@ return [
     'per_page'          => 'por página',
     'showing'           => 'Mostrando',
     'results'           => 'resultados',
+    'remove'            => 'Quitar',
+    'level'             => 'Nivel',
+    'no_logo'           => 'Sin logo',
+    'leave_empty_no_change' => 'Dejar vacío para no cambiar',
+    'all_departments'   => 'Todos los departamentos',
+    'all_tags'          => 'Todas las etiquetas',
+    'root_category'     => '(categoría raíz)',
+    'no_category'       => 'Sin categoría',
+    'assign_me'         => 'Asignarme',
+    'views_label'       => 'vistas',
+    'perms_by_role'     => 'Permisos por rol',
+
+    // Validation / error messages
+    'email_invalid'          => 'Email inválido.',
+    'password_min_8'         => 'Contraseña mínimo 8 caracteres.',
+    'email_taken'            => 'Este email ya está registrado.',
+    'email_taken_other'      => 'Email ya existe en otro usuario.',
+    'account_created'        => '¡Cuenta creada! Inicia sesión.',
+    'wrong_current_password' => 'Contraseña actual incorrecta.',
+    'role_invalid'           => 'Rol inválido.',
+    'user_not_found'         => 'Usuario no encontrado.',
+    'dept_not_found'         => 'Departamento no encontrado.',
+    'category_deleted'       => 'Categoría eliminada.',
+    'response_deleted'       => 'Respuesta eliminada.',
+    'sla_deleted'            => 'Política SLA eliminada.',
+    'article_deleted'        => 'Artículo eliminado.',
+    'thank_you_rating'       => '¡Gracias por tu calificación!',
+    'cant_delete_user_tickets' => 'No se puede eliminar: el usuario tiene %d ticket(s) activo(s). Desactívelo en cambio.',
+    'cant_delete_dept_tickets' => 'No se puede eliminar: el departamento tiene %d ticket(s) activo(s).',
 
     // Auth
     'login'             => 'Iniciar sesión',
@@ -68,6 +101,8 @@ return [
     'passwords_not_match'=> 'Las contraseñas no coinciden.',
     'new_password'      => 'Nueva contraseña',
     'verify_email_sent' => 'Se envió un correo de verificación.',
+    'no_account'        => '¿No tiene cuenta?',
+    'forgot_password_desc' => 'Ingrese su correo y le enviaremos un enlace para restablecer su contraseña.',
 
     // Roles
     'role'              => 'Rol',
@@ -142,6 +177,16 @@ return [
     'add_note'          => 'Agregar nota interna',
     'note_added'        => 'Nota agregada.',
     'view_all_tickets'  => 'Ver todos los tickets',
+    'message_label'     => 'Mensaje',
+    'problem_description'   => 'Descripción del problema',
+    'write_reply_placeholder'   => 'Escriba su respuesta...',
+    'internal_note_placeholder' => 'Nota interna (solo visible para agentes)...',
+    'new_tag_placeholder'       => 'Nueva etiqueta...',
+    'related_ticket_placeholder'=> 'Número de ticket...',
+    'kb_suggestions_hint'       => 'Escriba en el asunto para ver sugerencias...',
+    'resolution_due_label'      => 'Fecha límite de resolución',
+    'resolution_due_hint'       => 'Sobreescribe el tiempo SLA calculado por prioridad.',
+    'max_file_hint'             => 'Máx %dMB por archivo',
 
     // Statuses
     'status_open'       => 'Abierto',
@@ -165,6 +210,8 @@ return [
     'avatar'            => 'Foto de perfil',
     'last_login'        => 'Último acceso',
     'member_since'      => 'Miembro desde',
+    'main_department'   => 'Departamento principal',
+    'supervisor_dept_hint' => 'El supervisor puede ver y reasignar todos los tickets del departamento.',
 
     // Departments
     'departments'       => 'Departamentos',
@@ -225,6 +272,17 @@ return [
     'upload_logo'       => 'Subir logo',
     'current_logo'      => 'Logo actual',
     'remove_logo'       => 'Eliminar logo',
+    'system_section'    => 'Sistema',
+    'smtp_config'       => 'Configuración SMTP',
+    'common_providers'  => 'Proveedores comunes',
+    'color_hint'        => 'Color principal de la interfaz (navbar, botones).',
+    'public_reg_hint'   => '(clientes pueden registrarse solos)',
+    'logo_size_hint'    => 'Recomendado: 200×60px',
+    'favicon_hint'      => 'ICO o PNG 32×32px',
+    'color_preview'     => 'Vista previa del color',
+    'select_template_hint' => 'Seleccione una plantilla para editarla.',
+    'send_to'              => 'Enviar a',
+    'sending'              => 'Enviando...',
 
     // SLA
     'sla'               => 'SLA',
@@ -233,6 +291,18 @@ return [
     'resolution_h'      => 'Resolución (horas)',
     'business_hours'    => 'Solo horas hábiles',
     'sla_warning'       => 'Alerta SLA próximo a vencer',
+    'current_sla_policies'  => 'Políticas SLA actuales',
+    'new_policy'            => 'Nueva política',
+    'system_priorities'     => 'Prioridades del sistema',
+    'escalation_title'      => 'Escalación automática por SLA vencido',
+    'escalation_desc'       => 'Cuando un ticket supera su tiempo de resolución SLA sin estar resuelto o cerrado, el sistema puede notificar automáticamente a los responsables una sola vez.',
+    'escalation_enabled_label' => 'Activar notificaciones de escalación SLA',
+    'notify_who'            => '¿A quién notificar?',
+    'notify_supervisors'    => 'Solo supervisores del departamento',
+    'notify_admins'         => 'Solo administradores',
+    'notify_both_label'     => 'Supervisores y administradores',
+    'escalation_once_note'  => 'La notificación se envía <strong>una sola vez</strong> por ticket en el momento exacto en que se detecta el vencimiento. Se envía tanto como alerta en el sistema (campana) como por correo electrónico (si el SMTP está configurado).',
+    'save_escalation'       => 'Guardar configuración de escalación',
 
     // Knowledge Base
     'knowledge_base'    => 'Base de conocimiento',
@@ -250,6 +320,10 @@ return [
     'was_helpful'       => '¿Fue útil?',
     'helpful_yes'       => 'Sí, me ayudó',
     'helpful_no'        => 'No, no fue útil',
+    'title_es_label'    => 'Título (ES) *',
+    'title_en_label'    => 'Title (EN)',
+    'html_hint'         => 'Acepta HTML. Use &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;code&gt;, &lt;img&gt;, etc.',
+    'kb_search_placeholder' => 'Buscar en la base de conocimiento...',
 
     // Reports
     'reports'           => 'Reportes',
@@ -267,6 +341,11 @@ return [
     'csat_score'        => 'Calificación CSAT',
     'export_csv'        => 'Exportar CSV',
     'export_pdf'        => 'Exportar PDF',
+    'daily_volume'      => 'Volumen diario',
+    'ratings_label'     => 'calificaciones',
+    'agent'             => 'Agente',
+    'avg_response'      => 'Resp. promedio',
+    'resolution_rate'   => 'Tasa de resolución',
 
     // Notifications
     'notifications'     => 'Notificaciones',
@@ -276,6 +355,8 @@ return [
     // Canned Responses
     'canned_responses'  => 'Respuestas predefinidas',
     'new_canned'        => 'Nueva respuesta predefinida',
+    'content_label'     => 'Contenido *',
+    'optional_dept_hint'=> '(opcional — si es general dejar en blanco)',
 
     // Language
     'language'          => 'Idioma',

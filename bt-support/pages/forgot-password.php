@@ -39,7 +39,7 @@ $company_color = setting('company_color') ?: '#0d6efd';
     <?php if ($msg): ?>
       <div class="alert alert-success"><?= h($msg) ?></div>
     <?php else: ?>
-    <p class="text-muted small">Ingrese su correo y le enviaremos un enlace para restablecer su contraseña.</p>
+    <p class="text-muted small"><?= t('forgot_password_desc') ?></p>
     <form method="post">
       <?= csrf_field() ?>
       <div class="mb-3">
